@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Agar.io Betting Platform</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    
+    <!-- CSS básico inline para evitar 404 -->
+    <style>
+        * {
+            font-family: sans-serif;
+            font-size: 14px;
+        }
+
+        html, body {
+            background-color: #222;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        /* === ESTILOS PARA SISTEMA DE APUESTAS === */
+        .balance-info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: sans-serif;
+            z-index: 100;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .balance-item {
+            display: block;
+            margin: 5px 0;
+            font-size: 14px;
+        }
+
+        .balance-item strong {
+            color: #FFD700;
+        }
+
+        #currentValueDisplay {
+            position: absolute;
+            top: 120px;
+            right: 10px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            display: none;
+            z-index: 99;
+        }
+
+        .profit { color: #2ecc71; }
+        .loss { color: #e74c3c; }
+
+        #cashOutBtn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            z-index: 98;
+            transition: transform 0.2s;
+        }
+
+        #cashOutBtn:hover {
+            transform: scale(1.05);
+        }
+
+        #cashOutModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            display: none;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            min-width: 300px;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: #333;
+        }
+
+        .modal-content button {
+            margin: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #confirmCashOut {
+            background: #2ecc71;
+            color: white;
+        }
+
+        #cancelCashOut {
+            background: #95a5a6;
+            color: white;
+        }
+
+        #errorMessage {
+            background: #e74c3c;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        #cashOutResult {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2ecc71;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1001;
+            display: none;
+            text-align: center;
+        }
+
+        /* Start Menu */
+        #startMenu {
+            position: relative;
+            margin: auto;
+            margin-top: 100px;
+            width: 350px;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: white;
+            box-sizing: border-box;
+        }
+
+        #startMenu p {
+            padding: 0;
+            text-align: center;
+            font-size: x-large;
+            font-weight: bold;
+        }
+
+        #playerNameInput {
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            border: solid 1px #dcdcdc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            height: 40px;
+            font-size: large;
+            color: white;
+            background: #2ecc71;
+            border: 0;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px 0;
+        }
+
+        button:hover {
+            background: #55D88B;
+        }
+
+        #betSection {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 5px;
+        }
+
+        #betSlider {
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        #betDisplay {
+            font-weight: bold;
+            color: #2ecc71;
+            font-size: 18px;
+        }
+
+        #status {
+            position: absolute;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            color: #FFF;
+            font-size: 16.1px;
+            top: 10px;
+            right: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        #status .title {
+            font-size: 25px;
+        }
+
+        #status .me {
+            color: #FF8888;
+            font-size: 16.1px;
+        }
+
+        .chatbox {
+            position: absolute;
+            width: 300px;
+            height: 320px;
+            background: rgba(22, 22, 22, 0.7);
+            bottom: 5px;
+            left: 5px;
+            border-radius: 5px;
+            pointer-events: none;
+        }
+
+        .chatbox .chat-list {
+            padding: 5px;
+            margin: 0;
+            list-style: none;
+            height: 285px;
+            overflow: hidden;
+        }
+
+        .chat-input {
+            pointer-events: all;
+            width: 100%;
+            padding: 8px;
+            background: transparent;
+            border: none;
+            border-top: 1px solid #DDD;
+            outline: none;
+        }
+
+        #gameAreaWrapper {
+            position: absolute !important;
+            top: 0;
+            left: 0;
+            opacity: 0;
+        }
+
+        @media only screen and (max-width: 768px) {
+            .balance-info {
+                top: 5px;
+                right: 5px;
+                padding: 10px;
+                font-size: 12px;
+            }
+            
+            #cashOutBtn {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- === SECCIÓN DE LOGIN === -->
+    <div id="loginSection">
+        <div id="startMenu">
+            <p>🎮 Agar.io Betting</p>
+            <p style="font-size: 14px; color: #666;">Apuesta y gana comiendo a otros jugadores</p>
+            
+            <button id="devLoginBtn">🚀 Login (Dev Mode)</button>
+            <button id="googleLoginBtn">📧 Sign in with Google</button>
+            
+            <div style="margin-top: 20px; font-size: 12px; color: #999;">
+                <p>• Apuesta entre $1 - $5 USDC</p>
+                <p>• Cash out en cualquier momento (90%)</p>
+                <p>• Come otros jugadores para ganar valor</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- === SECCIÓN PRINCIPAL DEL JUEGO === -->
+    <div id="gameSection" style="display: none;">
+        
+        <!-- Balance display -->
+        <div class="balance-info">
+            <div class="balance-item">
+                <strong>Disponible:</strong> $<span id="availableBalance">0.00</span>
+            </div>
+            <div class="balance-item">
+                <strong>En Juego:</strong> $<span id="lockedBalance">0.00</span>
+            </div>
+            <div style="margin-top: 10px;">
+                <button id="addBalanceBtn" style="background: #3498db; width: auto; padding: 5px 10px; font-size: 12px;">+ $50 (Test)</button>
+                <button id="logoutBtn" style="background: #e74c3c; width: auto; padding: 5px 10px; font-size: 12px; margin-left: 5px;">Logout</button>
+            </div>
+        </div>
+
+        <!-- Menú de inicio de juego -->
+        <div id="startMenuWrapper">
+            <div id="startMenu">
+                <p>Bienvenido, <span id="userName">Usuario</span>! 🎮</p>
+                
+                <div id="errorMessage"></div>
+                
+                <input type="text" id="playerNameInput" placeholder="Tu nombre en el juego" maxlength="25" autofocus />
+                <b class="input-error" style="color: red; opacity: 0; font-size: 12px;">El nombre debe ser alfanumérico!</b>
+                
+                <!-- Selector de apuesta -->
+                <div id="betSection">
+                    <label style="display: block; margin-bottom: 5px;">
+                        Apostar: $<span id="betDisplay">1.00</span> USDC
+                    </label>
+                    <input type="range" id="betSlider" min="1" max="5" step="0.1" value="1">
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666;">
+                        <span>$1.00</span>
+                        <span>$5.00</span>
+                    </div>
+                </div>
+
+                <button id="startButton">
+                    🎯 Jugar por $<span id="betButtonAmount">1.00</span>
+                </button>
+                
+                <button id="spectateButton" style="background: #95a5a6;">
+                    👁️ Espectador (Gratis)
+                </button>
+                
+                <div style="margin-top: 20px; font-size: 12px; color: #666;">
+                    <h4>Cómo Jugar:</h4>
+                    <ul style="text-align: left; padding-left: 20px;">
+                        <li>Mueve el mouse para controlar tu célula</li>
+                        <li>Come comida y otros jugadores para crecer</li>
+                        <li>Tu valor aumenta al comer otros jugadores</li>
+                        <li>Presiona ESPACIO para dividirte</li>
+                        <li>Presiona W para disparar masa</li>
+                        <li>Presiona C para cash out rápido</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- === ÁREA DE JUEGO === -->
+        <div id="gameAreaWrapper">
+            <!-- Botón de cash out -->
+            <button id="cashOutBtn" style="display: none;">💰 Cash Out</button>
+            
+            <!-- Display de valor actual -->
+            <div id="currentValueDisplay">
+                <div>Valor: $<span id="valueAmount">0.00</span></div>
+                <div>ROI: <span id="roiAmount">0%</span></div>
+            </div>
+
+            <!-- Leaderboard -->
+            <div id="status">
+                <span class="title">Leaderboard</span>
+            </div>
+            
+            <!-- Chat -->
+            <div class="chatbox" id="chatbox">
+                <ul id="chatList" class="chat-list"></ul>
+                <input id="chatInput" type="text" class="chat-input" placeholder="Chat aquí..." maxlength="35" />
+            </div>
+            
+            <!-- Controles móviles -->
+            <div id="mobile">
+                <button id="split" style="position: absolute; bottom: 10px; left: 10px; width: 100px; height: 100px;">Split</button>
+                <button id="feed" style="position: absolute; bottom: 10px; right: 10px; width: 100px; height: 100px;">Feed</button>
+            </div>
+            
+            <!-- Canvas principal -->
+            <canvas tabindex="1" id="cvs"></canvas>
+        </div>
+    </div>
+
+    <!-- === MODAL DE CASH OUT === -->
+    <div id="cashOutModal">
+        <div class="modal-content">
+            <h3>💰 Cash Out</h3>
+            <p style="font-size: 18px; margin: 15px 0;">
+                Valor actual: <strong>$<span id="currentValue">0.00</span></strong>
+            </p>
+            <hr>
+            <p>Recibirás: <strong style="color: #2ecc71;">$<span id="cashOutAmount">0.00</span></strong> (90%)</p>
+            <p>Fee del sistema: <span style="color: #e74c3c;">$<span id="feeAmount">0.00</span></span> (10%)</p>
+            <hr>
+            <button id="confirmCashOut">✅ Confirmar Cash Out</button>
+            <button id="cancelCashOut">❌ Continuar Jugando</button>
+        </div>
+    </div>
+
+    <!-- === RESULTADO DE CASH OUT === -->
+    <div id="cashOutResult"></div>
+
+    <!-- === SCRIPTS === -->
+    
+    <!-- Socket.io client -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.js"></script>
+    
+    <!-- ORDEN CORRECTO DE CARGA: -->
+    
+    <!-- 1. Funciones de render PRIMERO -->
+    <script src="game/js/render.js"></script>
+    
+    <!-- 2. Clases de autenticación -->
+    <script src="game/js/auth-manager.js"></script>
+    <script src="game/js/betting-client.js"></script>
+    
+    <!-- 3. Canvas y Chat (SIN auto-inicialización) -->
+    <script src="game/js/canvas.js"></script>
+    <script src="game/js/chat-client.js"></script>
+    
+    <!-- 4. App principal AL FINAL -->
+    <script src="game/js/app-betting.js"></script>
+
+    <script>
+        // === MANEJO DE ERRORES ===
+        window.addEventListener('error', function(e) {
+            console.error('🚨 Global error:', e.error);
+            
+            const errorDiv = document.getElementById('errorMessage');
+            if (errorDiv) {
+                errorDiv.textContent = 'Error: ' + (e.message || 'Unknown error');
+                errorDiv.style.display = 'block';
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 5000);
+            }
+        });
+        
+        // === DEBUGGING HELPERS ===
+        if (window.location.hostname === 'localhost') {
+            window.debugBetting = {
+                checkGlobal: () => console.log('Global:', typeof global !== 'undefined' ? global : 'undefined'),
+                checkAuth: () => console.log('AuthManager:', typeof AuthManager !== 'undefined' ? 'loaded' : 'missing'),
+                forceLogin: () => {
+                    if (typeof authManager !== 'undefined') {
+                        authManager.devLogin();
+                    } else {
+                        console.log('❌ AuthManager not available');
+                    }
+                },
+                showElements: () => {
+                    console.log('Elements:', {
+                        devLoginBtn: !!document.getElementById('devLoginBtn'),
+                        gameSection: !!document.getElementById('gameSection'),
+                        canvas: !!document.getElementById('cvs')
+                    });
+                }
+            };
+            
+            console.log('🔧 Development mode - Use window.debugBetting for helpers');
+        }
+    </script>
+</body>
+</html>
