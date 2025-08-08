@@ -518,10 +518,10 @@ function startGameWithBetting(type, playerName, gameData) {
         global.gameValue = gameData.current_value;
     }
 
-    // Conectar al game server
-    const gameServerUrl = window.location.hostname === 'localhost' ? 
-        'http://localhost:3001' : 
-        'http://128.254.207.105:3001';
+            // Conectar al game server
+        const gameServerUrl = window.location.hostname === 'localhost' ? 
+            'http://localhost:3001' : 
+            'http://128.254.207.105:3001';
     
     socket = io(gameServerUrl, { query: query });
     global.socket = socket;
