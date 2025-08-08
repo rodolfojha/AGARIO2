@@ -1,5 +1,12 @@
 // public/game/js/auth-manager.js - Con debugging mejorado y Google Sign-In
 
+// Helper function para obtener la URL base de la API
+function getApiBaseUrl() {
+    return window.location.hostname === 'localhost' ? 
+        'http://localhost:3000' : 
+        'http://128.254.207.105:3000';
+}
+
 class AuthManager {
     constructor() {
         this.token = localStorage.getItem('auth_token');
@@ -12,7 +19,7 @@ class AuthManager {
             try {
                 // Verificar token existente
                 console.log('🔍 Verifying existing token...');
-                const response = await fetch('/api/auth/verify', {
+                const response = await fetch(`${getApiBaseUrl()}/api/auth/verify`, {
                     headers: { 'Authorization': `Bearer ${this.token}` }
                 });
                 
@@ -38,7 +45,7 @@ class AuthManager {
         try {
             console.log('🔗 Attempting login with token:', googleToken);
             
-            const response = await fetch('/api/auth/google', {
+            const response = await fetch(`${getApiBaseUrl()}/api/auth/google`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -88,7 +95,7 @@ class AuthManager {
         try {
             console.log('🔐 Processing Google ID token...');
             
-            const response = await fetch('/api/auth/google', {
+            const response = await fetch(`${getApiBaseUrl()}/api/auth/google`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',

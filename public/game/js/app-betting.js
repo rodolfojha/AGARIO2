@@ -1,5 +1,12 @@
 // public/game/js/app-betting.js - App principal completo con sistema de apuestas
 
+// Helper function para obtener la URL base de la API
+function getApiBaseUrl() {
+    return window.location.hostname === 'localhost' ? 
+        'http://localhost:3000' : 
+        'http://128.254.207.105:3000';
+}
+
 // === INSTANCIAS GLOBALES ===
 let authManager, bettingClient;
 let socket;
@@ -332,7 +339,7 @@ function setupTopUpModalHandlers() {
                 showError('Not authenticated');
                 return;
             }
-            const res = await fetch('/api/payments/nowpayments', {
+            const res = await fetch(`${getApiBaseUrl()}/api/payments/nowpayments`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -365,7 +372,7 @@ function setupTopUpModalHandlers() {
         try {
             hideError();
             if (!currentPaymentId) return;
-            const res = await fetch('/api/payments/nowpayments', {
+            const res = await fetch(`${getApiBaseUrl()}/api/payments/nowpayments`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -514,7 +521,7 @@ function startGameWithBetting(type, playerName, gameData) {
     // Conectar al game server
     const gameServerUrl = window.location.hostname === 'localhost' ? 
         'http://localhost:3001' : 
-        window.location.origin;
+        'http://128.254.207.105:3001';
     
     socket = io(gameServerUrl, { query: query });
     global.socket = socket;

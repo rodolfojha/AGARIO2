@@ -1186,63 +1186,40 @@
         function initializeGoogleSignIn(clientId) {
             console.log('🔧 Initializing Google Sign-In with client ID:', clientId.substring(0, 20) + '...');
             
-            google.accounts.id.initialize({
-                client_id: clientId,
-                callback: handleGoogleSignIn,
-                auto_select: false,
-                cancel_on_tap_outside: true
-            });
-
-            // Configurar el botón personalizado
+            // Para desarrollo, usar botón simple en lugar de Google OAuth real
             const googleBtn = document.getElementById('googleLoginBtn');
             if (googleBtn) {
-                googleBtn.onclick = function() {
-                    console.log('🔗 Google Sign-In button clicked');
-                    google.accounts.id.prompt((notification) => {
-                        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-                            console.log('🔄 Google prompt not shown, rendering button...');
-                            
-                            // Si el prompt no se muestra, usar el botón
-                            google.accounts.id.renderButton(
-                                document.getElementById('googleLoginBtn'),
-                                {
-                                    theme: 'filled_blue',
-                                    size: 'large',
-                                    type: 'standard',
-                                    shape: 'rectangular',
-                                    width: '100%'
-                                }
-                            );
+                googleBtn.onclick = async function() {
+                    console.log('🔗 Google Sign-In button clicked (DEV MODE)');
+                    
+                    // Simular login de Google para desarrollo
+                    if (typeof authManager !== 'undefined') {
+                        const success = await authManager.devLogin();
+                        if (success) {
+                            console.log('✅ Dev login successful');
+                        } else {
+                            console.error('❌ Dev login failed');
                         }
-                    });
-                };
-            }
-        }
-
-        async function handleGoogleSignIn(response) {
-            console.log('🔐 Google Sign-In response received');
-            
-            if (!response.credential) {
-                console.error('❌ No credential in Google response');
-                return;
-            }
-
-            try {
-                // Usar authManager para procesar el login
-                if (typeof authManager !== 'undefined') {
-                    const success = await authManager.loginWithGoogleToken(response.credential);
-                    if (success) {
-                        console.log('✅ Google login successful');
                     } else {
-                        console.error('❌ Google login failed');
+                        console.error('❌ AuthManager not loaded');
                     }
-                } else {
-                    console.error('❌ AuthManager not loaded');
-                }
-            } catch (error) {
-                console.error('🚨 Error processing Google login:', error);
+                };
+                
+                // Cambiar el texto del botón para indicar modo desarrollo
+                googleBtn.textContent = '🔑 DEV LOGIN (Google)';
+                googleBtn.style.background = '#4285f4';
+                googleBtn.style.color = 'white';
+                googleBtn.style.border = 'none';
+                googleBtn.style.padding = '12px 24px';
+                googleBtn.style.borderRadius = '4px';
+                googleBtn.style.cursor = 'pointer';
+                googleBtn.style.fontSize = '16px';
+                googleBtn.style.fontWeight = 'bold';
             }
         }
+
+        // Función de Google Sign-In removida para desarrollo
+        // Se usa authManager.devLogin() directamente
 
         // === MANEJO DE ERRORES ===
         window.addEventListener('error', function(e) {
