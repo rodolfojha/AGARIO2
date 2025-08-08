@@ -1,6 +1,18 @@
 module.exports = {
     host: "0.0.0.0",
     port: 3000,
+    // Configuración del dominio
+    domain: process.env.DOMAIN || "tu-dominio.com", // Reemplaza con tu dominio
+    cors: {
+        origin: [
+            "https://tu-dominio.com", // Tu dominio principal
+            "https://www.tu-dominio.com", // Con www
+            "https://tu-proyecto.vercel.app", // Tu dominio de Vercel
+            "http://localhost:3000", // Para desarrollo local
+            "http://localhost:5000" // Para desarrollo local
+        ],
+        credentials: true
+    },
     logpath: "logger.php",
     foodMass: 1,
     fireFood: 20,

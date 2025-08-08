@@ -48,6 +48,20 @@ console.log('💾 In-memory database initialized');
 
 // === API ROUTES ===
 
+// Configuración de Google
+app.get('/api/config/google', (req, res) => {
+    console.log('🔧 Google config request');
+    
+    // Para desarrollo, usar un Client ID de prueba
+    const clientId = "421367768275-jjk740oflbsa4km4sic9eid674fce1fm.apps.googleusercontent.com";
+    
+    res.json({
+        clientId: clientId,
+        configured: true,
+        source: 'development'
+    });
+});
+
 // Autenticación
 app.post('/api/auth/google', (req, res) => {
     console.log('🔑 Auth request:', req.method, req.body);
@@ -195,6 +209,39 @@ app.post('/api/game/start', (req, res) => {
             locked: user.balance_locked
         }
     });
+});
+
+// Pagos (simulado para desarrollo)
+app.post('/api/payments/nowpayments', (req, res) => {
+    console.log('💳 Payment request:', req.body);
+    
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer dev-jwt-token')) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { amount, currency = 'USD' } = req.body;
+    
+    if (!amount || amount < 1) {
+        return res.status(400).json({ error: 'Invalid amount' });
+    }
+
+    // Simular respuesta de pago
+    const paymentId = 'pay_' + Date.now();
+    
+    res.json({
+        success: true,
+        payment: {
+            id: paymentId,
+            amount: amount,
+            currency: currency,
+            status: 'pending',
+            payment_url: `https://example.com/pay/${paymentId}`,
+            created_at: new Date().toISOString()
+        }
+    });
+    
+    console.log('💳 Payment created:', paymentId, 'Amount:', amount);
 });
 
 // Cash out
