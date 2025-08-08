@@ -1,23 +1,9 @@
-// api/game/start.js - Iniciar juego (SOLO este archivo)
+// api/game/start.js - Iniciar juego con BD unificada
+import { getDatabase } from '../lib/database.js';
 
-// Base de datos en memoria compartida
-if (!global.devDatabase) {
-    global.devDatabase = {
-        users: new Map(),
-        games: new Map()
-    };
+export default async function handler(req, res) {
+    console.log('🎮 Start game API called');
     
-    // Inicializar usuario de prueba
-    global.devDatabase.users.set('dev-user-123', {
-        id: 'dev-user-123',
-        email: 'test@example.com',
-        name: 'Test Player',
-        balance_available: 100.00,
-        balance_locked: 0.00
-    });
-}
-
-export default async (req, res) => {
     // CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -31,15 +17,30 @@ export default async (req, res) => {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // Auth simple
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer dev-jwt-token')) {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
-
     try {
+        const db = getDatabase();
+        
+        // Verificar auth
+        const authHeader = req.headers.authorization;
+        console.log('🔍 Auth header received:', !!authHeader);
+        
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ error: 'No authorization header' });
+        }
+
+        const token = authHeader.replace('Bearer ', '');
+        console.log('🔍 Token type:', token.substring(0, 10) + '...');
+
+        // Extraer user ID del token
+        const userId = db.extractUserIdFromToken(token);
+        
+        if (!userId) {
+            console.log('❌ Unable to extract user ID from token');
+            return res.status(401).json({ error: 'Invalid token format' });
+        }
+
         const { betAmount } = req.body;
-        const userId = 'dev-user-123';
+        console.log('🎯 Game request:', { userId, betAmount });
 
         // Validar monto
         if (!betAmount || betAmount < 1 || betAmount > 5) {
@@ -48,10 +49,18 @@ export default async (req, res) => {
             });
         }
 
-        const user = global.devDatabase.users.get(userId);
+        // Obtener usuario
+        let user = await db.getUserById(userId);
         if (!user) {
-            return res.status(404).json({ error: 'User not found' });
+            console.log('❌ User not found in database');
+            return res.status(401).json({ error: 'User not found' });
         }
+
+        console.log('👤 User found:', {
+            id: user.id,
+            balance_available: user.balance_available,
+            balance_locked: user.balance_locked
+        });
 
         // Verificar balance suficiente
         if (user.balance_available < betAmount) {
@@ -62,25 +71,28 @@ export default async (req, res) => {
             });
         }
 
-        // Bloquear fondos
-        user.balance_available -= betAmount;
-        user.balance_locked += betAmount;
-        global.devDatabase.users.set(userId, user);
-
         // Crear juego
-        const gameId = 'game-' + Date.now();
-        const game = {
-            id: gameId,
-            player_id: userId,
-            bet_amount: betAmount,
-            current_value: betAmount,
-            status: 'active',
-            started_at: new Date().toISOString()
-        };
-        
-        global.devDatabase.games.set(gameId, game);
+        const game = await db.createGame(userId, betAmount);
 
-        console.log('🎮 Game started:', { userId, betAmount, gameId });
+        // Actualizar balance del usuario (bloquear fondos)
+        const newAvailable = user.balance_available - betAmount;
+        const newLocked = user.balance_locked + betAmount;
+        
+        const updatedUser = await db.updateUserBalance(userId, newAvailable, newLocked);
+
+        // Crear transacción
+        await db.createTransaction(userId, 'bet', betAmount, {
+            gameId: game.id,
+            timestamp: new Date().toISOString()
+        });
+
+        console.log('✅ Game started successfully:', { 
+            userId, 
+            gameId: game.id, 
+            betAmount,
+            newAvailableBalance: updatedUser.balance_available,
+            newLockedBalance: updatedUser.balance_locked
+        });
 
         res.json({
             success: true,
@@ -90,13 +102,16 @@ export default async (req, res) => {
                 current_value: betAmount
             },
             balance: {
-                available: user.balance_available,
-                locked: user.balance_locked
+                available: updatedUser.balance_available,
+                locked: updatedUser.balance_locked
             }
         });
 
     } catch (error) {
-        console.error('Start game error:', error);
-        res.status(500).json({ error: 'Failed to start game' });
+        console.error('🚨 Start game error:', error);
+        res.status(500).json({ 
+            error: 'Failed to start game',
+            details: error.message 
+        });
     }
-};
+}

@@ -1,4 +1,4 @@
-// public/game/js/auth-manager.js - Con debugging mejorado
+// public/game/js/auth-manager.js - Con debugging mejorado y Google Sign-In
 
 class AuthManager {
     constructor() {
@@ -21,6 +21,7 @@ class AuthManager {
                     this.user = data.user;
                     this.isAuthenticated = true;
                     this.updateUI();
+                    this.updateUserDisplay(); // NUEVO: Mostrar avatar/email
                     console.log('✅ Token verified, user logged in');
                 } else {
                     console.log('❌ Token expired, logging out');
@@ -69,6 +70,7 @@ class AuthManager {
                 
                 localStorage.setItem('auth_token', this.token);
                 this.updateUI();
+                this.updateUserDisplay(); // NUEVO: Mostrar avatar/email
                 console.log('✅ Login successful:', this.user.name);
                 return true;
             } else {
@@ -77,6 +79,54 @@ class AuthManager {
             }
         } catch (error) {
             console.error('🚨 Login error:', error);
+            return false;
+        }
+    }
+
+    // NUEVO: Método para manejar tokens de Google reales
+    async loginWithGoogleToken(googleIdToken) {
+        try {
+            console.log('🔐 Processing Google ID token...');
+            
+            const response = await fetch('/api/auth/google', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ googleIdToken: googleIdToken })
+            });
+
+            console.log('📡 Response status:', response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ Google login failed:', errorText);
+                return false;
+            }
+
+            const data = await response.json();
+            console.log('📦 Google login response:', data);
+
+            if (data.success) {
+                this.token = data.token;
+                this.user = data.user;
+                this.isAuthenticated = true;
+                
+                localStorage.setItem('auth_token', this.token);
+                this.updateUI();
+                
+                // Mostrar avatar y email si están disponibles
+                this.updateUserDisplay();
+                
+                console.log('✅ Google login successful:', this.user.name, this.user.email);
+                return true;
+            } else {
+                console.error('❌ Google login failed:', data.error);
+                return false;
+            }
+        } catch (error) {
+            console.error('🚨 Google login error:', error);
             return false;
         }
     }
@@ -130,6 +180,26 @@ class AuthManager {
                 available: this.user.balance_available,
                 locked: this.user.balance_locked
             });
+        }
+    }
+
+    // NUEVO: Método para actualizar el display del usuario (avatar y email)
+    updateUserDisplay() {
+        if (this.user) {
+            // Actualizar avatar
+            const userAvatar = document.getElementById('userAvatar');
+            const userEmail = document.getElementById('userEmail');
+            
+            if (userAvatar && this.user.avatar) {
+                userAvatar.src = this.user.avatar;
+                userAvatar.style.display = 'block';
+                console.log('🖼️ User avatar updated:', this.user.avatar);
+            }
+            
+            if (userEmail && this.user.email) {
+                userEmail.textContent = this.user.email;
+                console.log('📧 User email updated:', this.user.email);
+            }
         }
     }
 

@@ -126,7 +126,6 @@ function setupEventListeners() {
     console.log('🔧 Setting up event listeners...');
     const refreshBtn = document.createElement('button');
 refreshBtn.textContent = '🔄 Refresh';
-refreshBtn.onclick = () => window.location.reload();
 refreshBtn.style.position = 'absolute';
 refreshBtn.style.top = '10px';
 refreshBtn.style.left = '200px';
@@ -169,16 +168,35 @@ document.body.appendChild(refreshBtn);
     }
 
     // === BET CONTROLS ===
-    const betSlider = document.getElementById('betSlider');
-    const betDisplay = document.getElementById('betDisplay');
-    const betButtonAmount = document.getElementById('betButtonAmount');
+    // Configurar botones de apuesta
+    const betButtons = document.querySelectorAll('.bet-btn');
+    let currentBetAmount = 1; // Valor por defecto
 
-    if (betSlider && betDisplay && betButtonAmount) {
-        betSlider.oninput = function() {
-            const amount = parseFloat(this.value);
-            betDisplay.textContent = amount.toFixed(2);
-            betButtonAmount.textContent = amount.toFixed(2);
+    betButtons.forEach(button => {
+        button.onclick = function() {
+            // Remover clase activa de todos los botones
+            betButtons.forEach(btn => btn.style.background = '#FFD700');
+            
+            // Activar el botón seleccionado
+            this.style.background = '#FFED4E';
+            
+            // Obtener el monto del botón
+            const betAmount = parseFloat(this.getAttribute('data-bet'));
+            currentBetAmount = betAmount;
+            
+            console.log('💰 Selected bet amount:', betAmount);
+            
+            // Actualizar el texto del botón JOIN GAME
+            const joinGameBtn = document.getElementById('startButton');
+            if (joinGameBtn) {
+                joinGameBtn.textContent = `▷ JOIN GAME ($${betAmount})`;
+            }
         };
+    });
+
+    // Activar el primer botón por defecto
+    if (betButtons.length > 0) {
+        betButtons[0].style.background = '#FFED4E';
     }
 
     // === GAME EVENTS ===
@@ -233,28 +251,60 @@ document.body.appendChild(refreshBtn);
             }
         });
     }
+
+    // === GLOBAL KEYBOARD EVENTS ===
+    document.addEventListener('keydown', function(e) {
+        // Solo procesar si el juego está activo
+        if (global.gameStart && global.playerType === 'player') {
+            const key = e.which || e.keyCode;
+            
+            // Tecla 'C' para Cash Out (67)
+            if (key === 67) {
+                e.preventDefault();
+                console.log('💰 Cash out hotkey pressed');
+                console.log('🔍 bettingClient exists:', !!bettingClient);
+                console.log('🔍 currentGame exists:', !!(bettingClient && bettingClient.currentGame));
+                if (bettingClient && bettingClient.currentGame) {
+                    bettingClient.showCashOutModalAlternative(); // Usar método alternativo
+                } else {
+                    console.log('❌ Cannot show cash out modal - bettingClient or currentGame not available');
+                }
+            }
+            
+            // Tecla 'ESC' para salir del juego (27)
+            else if (key === 27) {
+                e.preventDefault();
+                console.log('🚪 ESC pressed - returning to menu');
+                returnToMenu();
+            }
+        }
+    });
 }
 
 // === FUNCIÓN PARA MANEJAR INICIO DE JUEGO ===
 async function handleStartGame() {
     console.log('🎮 ========== handleStartGame STARTED ==========');
     
-    const betSlider = document.getElementById('betSlider');
     const playerNameInput = document.getElementById('playerNameInput');
+    const activeBetButton = document.querySelector('.bet-btn[style*="FFED4E"]') || document.querySelector('.bet-btn');
     
     console.log('🔍 Raw elements:', {
-        betSlider,
         playerNameInput,
-        betSliderValue: betSlider?.value,
+        activeBetButton,
         playerNameInputValue: playerNameInput?.value
     });
     
-    if (!betSlider || !playerNameInput) {
-        console.error('❌ Missing form elements');
+    if (!playerNameInput) {
+        console.error('❌ Missing player name input');
         return;
     }
 
-    const betAmount = parseFloat(betSlider.value);
+    // Obtener el monto de apuesta del botón activo
+    let betAmount = 1; // Valor por defecto
+    if (activeBetButton) {
+        betAmount = parseFloat(activeBetButton.getAttribute('data-bet'));
+    }
+    
     const playerName = playerNameInput.value.trim();
 
     console.log('🔍 Parsed values:', { betAmount, playerName });
@@ -272,9 +322,9 @@ async function handleStartGame() {
         return;
     }
 
-    if (betAmount < 1 || betAmount > 5) {
+    if (betAmount < 1 || betAmount > 20) {
         console.log('❌ Invalid bet amount');
-        bettingClient.showError('La apuesta debe estar entre $1 y $5');
+        bettingClient.showError('La apuesta debe estar entre $1 y $20');
         return;
     }
 
@@ -316,9 +366,30 @@ function startGameWithBetting(type, playerName, gameData) {
     global.screen.width = window.innerWidth;
     global.screen.height = window.innerHeight;
 
-    // UI transitions
-    document.getElementById('startMenuWrapper').style.maxHeight = '0px';
-    document.getElementById('gameAreaWrapper').style.opacity = 1;
+    // UI transitions - Ocultar dashboard y mostrar solo el área de juego
+    const loginSection = document.getElementById('loginSection');
+    const gameSection = document.getElementById('gameSection');
+    const gameAreaWrapper = document.getElementById('gameAreaWrapper');
+    
+    // Ocultar sección de login
+    if (loginSection) loginSection.style.display = 'none';
+    
+    // Mostrar área de juego pero ocultar elementos del dashboard
+    if (gameSection) {
+        gameSection.style.display = 'block';
+        
+        // Ocultar todos los elementos del dashboard
+        const dashboardElements = gameSection.querySelectorAll('.top-bar, .logo-section, .main-container, .discord-btn');
+        dashboardElements.forEach(element => {
+            element.style.display = 'none';
+        });
+    }
+    
+    // Mostrar solo el área de juego
+    if (gameAreaWrapper) {
+        gameAreaWrapper.style.opacity = 1;
+        gameAreaWrapper.style.display = 'block';
+    }
 
     // Preparar conexión al servidor de juego
     let query = 'type=' + type;
@@ -339,9 +410,36 @@ function startGameWithBetting(type, playerName, gameData) {
 
     // Setup UI para jugador con apuesta
     if (type === 'player' && gameData) {
-        document.getElementById('currentValueDisplay').style.display = 'block';
-        bettingClient.showCashOutButton();
-        bettingClient.updateGameValue(gameData.current_value);
+        const currentValueDisplay = document.getElementById('currentValueDisplay');
+        const cashOutBtn = document.getElementById('cashOutBtn');
+        const controlsIndicator = document.getElementById('controlsIndicator');
+        
+        if (currentValueDisplay) {
+            currentValueDisplay.style.display = 'block';
+        }
+        
+                       if (cashOutBtn) {
+                   cashOutBtn.style.display = 'block';
+                   cashOutBtn.onclick = () => {
+                       console.log('💰 Cash out button clicked');
+                       console.log('🔍 bettingClient exists:', !!bettingClient);
+                       console.log('🔍 currentGame exists:', !!(bettingClient && bettingClient.currentGame));
+                       if (bettingClient && bettingClient.currentGame) {
+                           bettingClient.showCashOutModalAlternative(); // Usar método alternativo
+                       } else {
+                           console.log('❌ Cannot show cash out modal - bettingClient or currentGame not available');
+                       }
+                   };
+               }
+        
+        if (controlsIndicator) {
+            controlsIndicator.style.display = 'block';
+        }
+        
+        if (bettingClient) {
+            bettingClient.showCashOutButton();
+            bettingClient.updateGameValue(gameData.current_value);
+        }
     }
 
     // NUEVO: Crear canvas y chat NUEVOS (no reutilizar)
@@ -415,6 +513,11 @@ function setupGameSocket(socket) {
         if (global.chatClient) {
             global.chatClient.addSystemLine('Connected to the game!');
             global.chatClient.addSystemLine('Type <b>-help</b> for commands.');
+            
+            // Mostrar controles de teclado para jugadores con apuesta
+            if (global.playerType === 'player' && global.currentBet > 0) {
+                global.chatClient.addSystemLine('🎮 <b>Controls:</b> C = Cash Out, ESC = Exit Game');
+            }
         }
         
         // Focus en canvas
@@ -510,9 +613,6 @@ function setupGameSocket(socket) {
             showGameOverMessage('You died!');
         }
         
-        setTimeout(function() {
-            returnToMenu();
-        }, 2500);
     });
 
     socket.on('kick', function(reason) {
@@ -604,42 +704,75 @@ function returnToMenu() {
     users = [];
     leaderboard = [];
     
-    // UI Updates básicas
+    // UI Updates básicas - Ocultar área de juego y mostrar dashboard completo
     const gameAreaWrapper = document.getElementById('gameAreaWrapper');
-    const startMenuWrapper = document.getElementById('startMenuWrapper');
+    const loginSection = document.getElementById('loginSection');
+    const gameSection = document.getElementById('gameSection');
     const currentValueDisplay = document.getElementById('currentValueDisplay');
+    const cashOutBtn = document.getElementById('cashOutBtn');
     
+    // Ocultar área de juego
     if (gameAreaWrapper) {
         gameAreaWrapper.style.opacity = 0;
+        gameAreaWrapper.style.display = 'none';
     }
-    if (startMenuWrapper) {
-        startMenuWrapper.style.maxHeight = '1000px';
+    
+    // Mostrar sección de login
+    if (loginSection) {
+        loginSection.style.display = 'flex';
     }
+    
+    // Ocultar sección de juego
+    if (gameSection) {
+        gameSection.style.display = 'none';
+    }
+    
+    // Ocultar elementos del juego
     if (currentValueDisplay) {
         currentValueDisplay.style.display = 'none';
     }
+    if (cashOutBtn) {
+        cashOutBtn.style.display = 'none';
+        cashOutBtn.onclick = null; // Limpiar event listener
+    }
     
-    // NUEVO: Usar las funciones específicas
+    // Ocultar indicador de controles
+    const controlsIndicator = document.getElementById('controlsIndicator');
+    if (controlsIndicator) {
+        controlsIndicator.style.display = 'none';
+    }
+    
+    // Ocultar modales de cash out
+    const cashOutModal = document.getElementById('cashOutModal');
+    const cashOutResult = document.getElementById('cashOutResult');
+    const cashOutModalAlternative = document.getElementById('cashOutModalAlternative');
+    
+    if (cashOutModal) {
+        cashOutModal.style.display = 'none';
+    }
+    if (cashOutResult) {
+        cashOutResult.style.display = 'none';
+    }
+    if (cashOutModalAlternative) {
+        cashOutModalAlternative.remove();
+    }
+    
+    // NUEVO: En lugar de recargar, limpiar y resetear
     setTimeout(() => {
         resetMenuUI();
         reestablishEventListeners();
         
-        // Debug para ver el estado
-        debugUIState();
-        
-        // Refresh balance
+        // Refresh balance desde el servidor SIN recargar página
         if (authManager && authManager.isAuthenticated) {
-            bettingClient.refreshBalance();
+            authManager.initialize(); // Re-verificar token y actualizar balance
         }
         
-        console.log('✅ Return to menu complete - UI should be responsive now');
-    }, 500); // Delay para asegurar que la UI se actualice
-
-    setTimeout(() => {
-    console.log('🔄 Auto-refreshing for clean state...');
-    window.location.reload();
-}, 2000);
+        console.log('✅ Return to menu complete - UI reset without page reload');
+    }, 500);
 }
+
+// Hacer returnToMenu disponible globalmente
+window.returnToMenu = returnToMenu;
 
 // NUEVO: Función para limpiar completamente el juego anterior
 function cleanupPreviousGame() {
@@ -915,29 +1048,28 @@ function resetMenuUI() {
         console.log('✅ Player name input reset');
     }
     
-    // 2. Reset del slider de apuesta
-    const betSlider = document.getElementById('betSlider');
-    const betDisplay = document.getElementById('betDisplay');
-    const betButtonAmount = document.getElementById('betButtonAmount');
+    // 2. Reset de los botones de apuesta
+    const betButtons = document.querySelectorAll('.bet-btn');
+    betButtons.forEach((button, index) => {
+        if (index === 0) {
+            button.style.background = '#FFED4E'; // Activar primer botón
+        } else {
+            button.style.background = '#FFD700'; // Resetear otros botones
+        }
+    });
     
-    if (betSlider) {
-        betSlider.value = 1;
-        betSlider.disabled = false;
-        betSlider.style.opacity = '1';
-    }
-    if (betDisplay) {
-        betDisplay.textContent = '1.00';
-    }
-    if (betButtonAmount) {
-        betButtonAmount.textContent = '1.00';
+    // Reset del texto del botón JOIN GAME
+    const startButton = document.getElementById('startButton');
+    if (startButton) {
+        startButton.textContent = '▷ JOIN GAME ($1)';
     }
     
     // 3. Reset del botón de jugar
-    const startButton = document.getElementById('startButton');
-    if (startButton) {
-        startButton.disabled = false;
-        startButton.style.opacity = '1';
-        startButton.style.pointerEvents = 'auto';
+    const startButtonElement = document.getElementById('startButton');
+    if (startButtonElement) {
+        startButtonElement.disabled = false;
+        startButtonElement.style.opacity = '1';
+        startButtonElement.style.pointerEvents = 'auto';
         console.log('✅ Start button enabled');
     }
     
@@ -948,12 +1080,18 @@ function resetMenuUI() {
         errorMessage.textContent = '';
     }
     
-    // 5. Mostrar sección de juego
+    // 5. Mostrar sección de juego con todos los elementos del dashboard
     const gameSection = document.getElementById('gameSection');
     const loginSection = document.getElementById('loginSection');
     
     if (gameSection) {
         gameSection.style.display = 'block';
+        
+        // Mostrar todos los elementos del dashboard
+        const dashboardElements = gameSection.querySelectorAll('.top-bar, .logo-section, .main-container, .discord-btn');
+        dashboardElements.forEach(element => {
+            element.style.display = '';
+        });
     }
     if (loginSection) {
         loginSection.style.display = 'none';
@@ -968,7 +1106,6 @@ function reestablishEventListeners() {
     
     // Remover event listeners anteriores (si existen)
     const startButton = document.getElementById('startButton');
-    const betSlider = document.getElementById('betSlider');
     const playerNameInput = document.getElementById('playerNameInput');
     
     if (startButton) {
@@ -985,23 +1122,35 @@ function reestablishEventListeners() {
         console.log('✅ Start button listener re-established');
     }
     
-    if (betSlider) {
-        // Crear nuevo slider
-        const newBetSlider = betSlider.cloneNode(true);
-        betSlider.parentNode.replaceChild(newBetSlider, betSlider);
+    // Re-establecer event listeners para botones de apuesta
+    const betButtons = document.querySelectorAll('.bet-btn');
+    betButtons.forEach(button => {
+        // Remover event listeners anteriores
+        const newButton = button.cloneNode(true);
+        button.parentNode.replaceChild(newButton, button);
         
         // Agregar event listener fresco
-        newBetSlider.oninput = function() {
-            const amount = parseFloat(this.value);
-            const betDisplay = document.getElementById('betDisplay');
-            const betButtonAmount = document.getElementById('betButtonAmount');
+        newButton.onclick = function() {
+            // Remover clase activa de todos los botones
+            betButtons.forEach(btn => btn.style.background = '#FFD700');
             
-            if (betDisplay) betDisplay.textContent = amount.toFixed(2);
-            if (betButtonAmount) betButtonAmount.textContent = amount.toFixed(2);
+            // Activar el botón seleccionado
+            this.style.background = '#FFED4E';
+            
+            // Obtener el monto del botón
+            const betAmount = parseFloat(this.getAttribute('data-bet'));
+            
+            console.log('💰 Selected bet amount:', betAmount);
+            
+            // Actualizar el texto del botón JOIN GAME
+            const joinGameBtn = document.getElementById('startButton');
+            if (joinGameBtn) {
+                joinGameBtn.textContent = `▷ JOIN GAME ($${betAmount})`;
+            }
         };
-        
-        console.log('✅ Bet slider listener re-established');
-    }
+    });
+    
+    console.log('✅ Bet buttons listeners re-established');
     
     if (playerNameInput) {
         // Crear nuevo input
@@ -1033,20 +1182,27 @@ function debugUIState() {
     const elements = {
         playerNameInput: document.getElementById('playerNameInput'),
         startButton: document.getElementById('startButton'),
-        betSlider: document.getElementById('betSlider'),
+        betButtons: document.querySelectorAll('.bet-btn'),
         gameSection: document.getElementById('gameSection'),
-        startMenuWrapper: document.getElementById('startMenuWrapper')
+        loginSection: document.getElementById('loginSection')
     };
     
     console.log('🔍 UI Debug State:');
     for (const [name, element] of Object.entries(elements)) {
         if (element) {
-            console.log(`  ${name}:`, {
-                disabled: element.disabled,
-                style_display: element.style.display,
-                style_opacity: element.style.opacity,
-                value: element.value || 'N/A'
-            });
+            if (name === 'betButtons') {
+                console.log(`  ${name}:`, {
+                    count: element.length,
+                    activeButton: Array.from(element).findIndex(btn => btn.style.background === 'rgb(255, 237, 78)')
+                });
+            } else {
+                console.log(`  ${name}:`, {
+                    disabled: element.disabled,
+                    style_display: element.style.display,
+                    style_opacity: element.style.opacity,
+                    value: element.value || 'N/A'
+                });
+            }
         } else {
             console.log(`  ${name}: NOT FOUND`);
         }

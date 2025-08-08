@@ -1,0 +1,357 @@
+{
+  "users": {
+    "dev-user-123": {
+      "id": "dev-user-123",
+      "email": "test@example.com",
+      "google_id": null,
+      "name": "Test Player",
+      "avatar": "https://via.placeholder.com/64",
+      "balance_available": 100,
+      "balance_locked": 0,
+      "total_wagered": 0,
+      "total_won": 0,
+      "games_played": 0,
+      "created_at": "2025-08-06T23:26:19.237Z",
+      "last_login": "2025-08-07T02:23:24.130Z"
+    },
+    "google-109860910176628260783": {
+      "id": "google-109860910176628260783",
+      "email": "slatino027@gmail.com",
+      "google_id": "109860910176628260783",
+      "name": "Silkroad Latino",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocJkS7Y0_qOBcoHTw-8GXNM8FnIaP0J-H6GSJaUUnlhZtIxs7g=s96-c",
+      "balance_available": 93.60000000000002,
+      "balance_locked": 5,
+      "total_wagered": 14,
+      "total_won": 12.600000000000001,
+      "games_played": 6,
+      "created_at": "2025-08-06T23:26:31.671Z",
+      "last_login": "2025-08-07T03:02:03.240Z"
+    },
+    "google-100814661542191213131": {
+      "id": "google-100814661542191213131",
+      "email": "rodolfoalva1345@gmail.com",
+      "google_id": "100814661542191213131",
+      "name": "Rodolfo Alvarez",
+      "avatar": "https://lh3.googleusercontent.com/a/ACg8ocK7Cyw0jJGmEZwyWaO2jaBHuLy8o9OYV5986pVmUVcIJLkObg=s96-c",
+      "balance_available": 100,
+      "balance_locked": 0,
+      "total_wagered": 0,
+      "total_won": 0,
+      "games_played": 0,
+      "created_at": "2025-08-06T23:28:29.361Z",
+      "last_login": "2025-08-06T23:28:29.362Z"
+    }
+  },
+  "games": {
+    "game-1754531977162-g1w5zwc30": {
+      "id": "game-1754531977162-g1w5zwc30",
+      "player_id": "google-109860910176628260783",
+      "bet_amount": 1,
+      "current_value": 1,
+      "status": "cashed_out",
+      "started_at": "2025-08-07T01:59:37.162Z",
+      "ended_at": "2025-08-07T02:00:04.724Z"
+    },
+    "game-1754532260311-3lhvpt22y": {
+      "id": "game-1754532260311-3lhvpt22y",
+      "player_id": "google-109860910176628260783",
+      "bet_amount": 5,
+      "current_value": 5,
+      "status": "cashed_out",
+      "started_at": "2025-08-07T02:04:20.311Z",
+      "ended_at": "2025-08-07T02:04:35.840Z"
+    },
+    "game-1754532527421-zv6fzg5a2": {
+      "id": "game-1754532527421-zv6fzg5a2",
+      "player_id": "google-109860910176628260783",
+      "bet_amount": 5,
+      "current_value": 5,
+      "status": "cashed_out",
+      "started_at": "2025-08-07T02:08:47.421Z",
+      "ended_at": "2025-08-07T02:09:04.296Z"
+    },
+    "game-1754533798347-knpzu13y7": {
+      "id": "game-1754533798347-knpzu13y7",
+      "player_id": "google-109860910176628260783",
+      "bet_amount": 1,
+      "current_value": 1,
+      "status": "active",
+      "started_at": "2025-08-07T02:29:58.347Z",
+      "ended_at": null
+    },
+    "game-1754533993094-ad8xi8jyl": {
+      "id": "game-1754533993094-ad8xi8jyl",
+      "player_id": "google-109860910176628260783",
+      "bet_amount": 1,
+      "current_value": 1,
+      "status": "active",
+      "started_at": "2025-08-07T02:33:13.094Z",
+      "ended_at": null
+    },
+    "game-1754534369354-bctx0egcs": {
+      "id": "game-1754534369354-bctx0egcs",
+      "player_id": "google-109860910176628260783",
+      "bet_amount": 1,
+      "current_value": 1,
+      "status": "active",
+      "started_at": "2025-08-07T02:39:29.354Z",
+      "ended_at": null
+    },
+    "game-1754534442700-laufi8gcx": {
+      "id": "game-1754534442700-laufi8gcx",
+      "player_id": "google-109860910176628260783",
+      "bet_amount": 1,
+      "current_value": 1,
+      "status": "active",
+      "started_at": "2025-08-07T02:40:42.700Z",
+      "ended_at": null
+    },
+    "game-1754534967262-54sa4asuz": {
+      "id": "game-1754534967262-54sa4asuz",
+      "player_id": "google-109860910176628260783",
+      "bet_amount": 1,
+      "current_value": 1,
+      "status": "active",
+      "started_at": "2025-08-07T02:49:27.262Z",
+      "ended_at": null
+    },
+    "game-1754535220967-81gm50n5x": {
+      "id": "game-1754535220967-81gm50n5x",
+      "player_id": "google-109860910176628260783",
+      "bet_amount": 1,
+      "current_value": 1,
+      "status": "cashed_out",
+      "started_at": "2025-08-07T02:53:40.967Z",
+      "ended_at": "2025-08-07T02:53:53.567Z"
+    },
+    "game-1754535485802-r80h6auxf": {
+      "id": "game-1754535485802-r80h6auxf",
+      "player_id": "google-109860910176628260783",
+      "bet_amount": 1,
+      "current_value": 1,
+      "status": "cashed_out",
+      "started_at": "2025-08-07T02:58:05.802Z",
+      "ended_at": "2025-08-07T02:58:26.192Z"
+    },
+    "game-1754535694084-myrpyd319": {
+      "id": "game-1754535694084-myrpyd319",
+      "player_id": "google-109860910176628260783",
+      "bet_amount": 1,
+      "current_value": 1,
+      "status": "cashed_out",
+      "started_at": "2025-08-07T03:01:34.084Z",
+      "ended_at": "2025-08-07T03:02:01.000Z"
+    }
+  },
+  "transactions": {
+    "tx-1754531977169-ij1xdgs94": {
+      "id": "tx-1754531977169-ij1xdgs94",
+      "user_id": "google-109860910176628260783",
+      "type": "bet",
+      "amount": 1,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754531977162-g1w5zwc30\",\"timestamp\":\"2025-08-07T01:59:37.168Z\"}",
+      "created_at": "2025-08-07T01:59:37.169Z"
+    },
+    "tx-1754532004729-xtlzb5gak": {
+      "id": "tx-1754532004729-xtlzb5gak",
+      "user_id": "google-109860910176628260783",
+      "type": "cashout",
+      "amount": 0.9,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754531977162-g1w5zwc30\",\"originalValue\":1,\"fee\":0.1,\"timestamp\":\"2025-08-07T02:00:04.728Z\"}",
+      "created_at": "2025-08-07T02:00:04.729Z"
+    },
+    "tx-1754532004731-a6apzcxoy": {
+      "id": "tx-1754532004731-a6apzcxoy",
+      "user_id": "google-109860910176628260783",
+      "type": "fee",
+      "amount": 0.1,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754531977162-g1w5zwc30\",\"cashoutValue\":1,\"timestamp\":\"2025-08-07T02:00:04.730Z\"}",
+      "created_at": "2025-08-07T02:00:04.731Z"
+    },
+    "tx-1754532260316-pvriyrsa1": {
+      "id": "tx-1754532260316-pvriyrsa1",
+      "user_id": "google-109860910176628260783",
+      "type": "bet",
+      "amount": 5,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754532260311-3lhvpt22y\",\"timestamp\":\"2025-08-07T02:04:20.316Z\"}",
+      "created_at": "2025-08-07T02:04:20.316Z"
+    },
+    "tx-1754532275846-mx1bzozg1": {
+      "id": "tx-1754532275846-mx1bzozg1",
+      "user_id": "google-109860910176628260783",
+      "type": "cashout",
+      "amount": 4.5,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754532260311-3lhvpt22y\",\"originalValue\":5,\"fee\":0.5,\"timestamp\":\"2025-08-07T02:04:35.844Z\"}",
+      "created_at": "2025-08-07T02:04:35.846Z"
+    },
+    "tx-1754532275848-4wuhuea17": {
+      "id": "tx-1754532275848-4wuhuea17",
+      "user_id": "google-109860910176628260783",
+      "type": "fee",
+      "amount": 0.5,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754532260311-3lhvpt22y\",\"cashoutValue\":5,\"timestamp\":\"2025-08-07T02:04:35.848Z\"}",
+      "created_at": "2025-08-07T02:04:35.849Z"
+    },
+    "tx-1754532527428-yif24thps": {
+      "id": "tx-1754532527428-yif24thps",
+      "user_id": "google-109860910176628260783",
+      "type": "bet",
+      "amount": 5,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754532527421-zv6fzg5a2\",\"timestamp\":\"2025-08-07T02:08:47.427Z\"}",
+      "created_at": "2025-08-07T02:08:47.428Z"
+    },
+    "tx-1754532544298-8fu018ijj": {
+      "id": "tx-1754532544298-8fu018ijj",
+      "user_id": "google-109860910176628260783",
+      "type": "cashout",
+      "amount": 4.5,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754532527421-zv6fzg5a2\",\"originalValue\":5,\"fee\":0.5,\"timestamp\":\"2025-08-07T02:09:04.297Z\"}",
+      "created_at": "2025-08-07T02:09:04.298Z"
+    },
+    "tx-1754532544300-tztzwu353": {
+      "id": "tx-1754532544300-tztzwu353",
+      "user_id": "google-109860910176628260783",
+      "type": "fee",
+      "amount": 0.5,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754532527421-zv6fzg5a2\",\"cashoutValue\":5,\"timestamp\":\"2025-08-07T02:09:04.299Z\"}",
+      "created_at": "2025-08-07T02:09:04.300Z"
+    },
+    "tx-1754533798353-z3he5jgr4": {
+      "id": "tx-1754533798353-z3he5jgr4",
+      "user_id": "google-109860910176628260783",
+      "type": "bet",
+      "amount": 1,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754533798347-knpzu13y7\",\"timestamp\":\"2025-08-07T02:29:58.352Z\"}",
+      "created_at": "2025-08-07T02:29:58.353Z"
+    },
+    "tx-1754533993100-5gyevztw8": {
+      "id": "tx-1754533993100-5gyevztw8",
+      "user_id": "google-109860910176628260783",
+      "type": "bet",
+      "amount": 1,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754533993094-ad8xi8jyl\",\"timestamp\":\"2025-08-07T02:33:13.099Z\"}",
+      "created_at": "2025-08-07T02:33:13.100Z"
+    },
+    "tx-1754534369360-i06zp6kzc": {
+      "id": "tx-1754534369360-i06zp6kzc",
+      "user_id": "google-109860910176628260783",
+      "type": "bet",
+      "amount": 1,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754534369354-bctx0egcs\",\"timestamp\":\"2025-08-07T02:39:29.359Z\"}",
+      "created_at": "2025-08-07T02:39:29.360Z"
+    },
+    "tx-1754534442706-2qq8lvd5r": {
+      "id": "tx-1754534442706-2qq8lvd5r",
+      "user_id": "google-109860910176628260783",
+      "type": "bet",
+      "amount": 1,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754534442700-laufi8gcx\",\"timestamp\":\"2025-08-07T02:40:42.705Z\"}",
+      "created_at": "2025-08-07T02:40:42.706Z"
+    },
+    "tx-1754534967268-8an9dksw6": {
+      "id": "tx-1754534967268-8an9dksw6",
+      "user_id": "google-109860910176628260783",
+      "type": "bet",
+      "amount": 1,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754534967262-54sa4asuz\",\"timestamp\":\"2025-08-07T02:49:27.267Z\"}",
+      "created_at": "2025-08-07T02:49:27.268Z"
+    },
+    "tx-1754535220974-2qhcnz44k": {
+      "id": "tx-1754535220974-2qhcnz44k",
+      "user_id": "google-109860910176628260783",
+      "type": "bet",
+      "amount": 1,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754535220967-81gm50n5x\",\"timestamp\":\"2025-08-07T02:53:40.973Z\"}",
+      "created_at": "2025-08-07T02:53:40.974Z"
+    },
+    "tx-1754535233569-2b452xyst": {
+      "id": "tx-1754535233569-2b452xyst",
+      "user_id": "google-109860910176628260783",
+      "type": "cashout",
+      "amount": 0.9,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754535220967-81gm50n5x\",\"originalValue\":1,\"fee\":0.1,\"timestamp\":\"2025-08-07T02:53:53.568Z\"}",
+      "created_at": "2025-08-07T02:53:53.569Z"
+    },
+    "tx-1754535233573-2km47tavu": {
+      "id": "tx-1754535233573-2km47tavu",
+      "user_id": "google-109860910176628260783",
+      "type": "fee",
+      "amount": 0.1,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754535220967-81gm50n5x\",\"cashoutValue\":1,\"timestamp\":\"2025-08-07T02:53:53.572Z\"}",
+      "created_at": "2025-08-07T02:53:53.573Z"
+    },
+    "tx-1754535485809-ty77pmssb": {
+      "id": "tx-1754535485809-ty77pmssb",
+      "user_id": "google-109860910176628260783",
+      "type": "bet",
+      "amount": 1,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754535485802-r80h6auxf\",\"timestamp\":\"2025-08-07T02:58:05.808Z\"}",
+      "created_at": "2025-08-07T02:58:05.809Z"
+    },
+    "tx-1754535506195-um72c2iwr": {
+      "id": "tx-1754535506195-um72c2iwr",
+      "user_id": "google-109860910176628260783",
+      "type": "cashout",
+      "amount": 0.9,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754535485802-r80h6auxf\",\"originalValue\":1,\"fee\":0.1,\"timestamp\":\"2025-08-07T02:58:26.194Z\"}",
+      "created_at": "2025-08-07T02:58:26.195Z"
+    },
+    "tx-1754535506197-iy4tbjfus": {
+      "id": "tx-1754535506197-iy4tbjfus",
+      "user_id": "google-109860910176628260783",
+      "type": "fee",
+      "amount": 0.1,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754535485802-r80h6auxf\",\"cashoutValue\":1,\"timestamp\":\"2025-08-07T02:58:26.196Z\"}",
+      "created_at": "2025-08-07T02:58:26.197Z"
+    },
+    "tx-1754535694089-d4qy187rt": {
+      "id": "tx-1754535694089-d4qy187rt",
+      "user_id": "google-109860910176628260783",
+      "type": "bet",
+      "amount": 1,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754535694084-myrpyd319\",\"timestamp\":\"2025-08-07T03:01:34.088Z\"}",
+      "created_at": "2025-08-07T03:01:34.089Z"
+    },
+    "tx-1754535721002-egq7l41yr": {
+      "id": "tx-1754535721002-egq7l41yr",
+      "user_id": "google-109860910176628260783",
+      "type": "cashout",
+      "amount": 0.9,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754535694084-myrpyd319\",\"originalValue\":1,\"fee\":0.1,\"timestamp\":\"2025-08-07T03:02:01.002Z\"}",
+      "created_at": "2025-08-07T03:02:01.002Z"
+    },
+    "tx-1754535721004-ab2m91bqu": {
+      "id": "tx-1754535721004-ab2m91bqu",
+      "user_id": "google-109860910176628260783",
+      "type": "fee",
+      "amount": 0.1,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754535694084-myrpyd319\",\"cashoutValue\":1,\"timestamp\":\"2025-08-07T03:02:01.003Z\"}",
+      "created_at": "2025-08-07T03:02:01.004Z"
+    }
+  },
+  "lastUpdate": "2025-08-07T03:02:03.240Z"
+}
