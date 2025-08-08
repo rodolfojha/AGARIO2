@@ -1003,7 +1003,7 @@
                         <div class="balance-crypto">0.0000 SOL</div>
                     </div>
 
-                    <div class="wallet-buttons">
+                <div class="wallet-buttons">
                         <button id="addBalanceBtn" class="add-funds-btn">Add Funds</button>
                         <button class="cash-out-btn">Cash Out</button>
                     </div>
@@ -1106,6 +1106,40 @@
 
     <!-- === RESULTADO DE CASH OUT === -->
     <div id="cashOutResult"></div>
+
+    <!-- === MODAL RECARGA (NOWPayments) === -->
+    <div id="topUpModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:2000;">
+      <div style="position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:#1b2430; color:#fff; padding:24px; border-radius:12px; width: 420px; max-width: 95vw;">
+        <h3 style="margin:0 0 12px; color:#FFD700;">➕ Add Funds (NOWPayments)</h3>
+        <div style="font-size:13px; color:#aaa; margin-bottom:12px;">Pay with crypto, credited in USD to your balance.</div>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <input id="topUpAmount" type="number" min="5" step="1" value="25" placeholder="$ Amount (USD)" style="flex:1; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:#243143; color:#fff;">
+          <select id="topUpCurrency" style="width:140px; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:#243143; color:#fff;">
+            <option value="usdt">USDT</option>
+            <option value="usdc">USDC</option>
+            <option value="btc">BTC</option>
+            <option value="eth">ETH</option>
+            <option value="sol">SOL</option>
+          </select>
+        </div>
+        <div id="topUpError" style="display:none; background:#e74c3c; padding:8px 10px; border-radius:6px; font-size:12px; margin-bottom:10px;"></div>
+        <div id="topUpStepCreate" style="display:block;">
+          <button id="topUpCreateBtn" style="width:100%; padding:12px; border:none; background:#2ECC71; color:#fff; border-radius:10px; font-weight:700; cursor:pointer;">Create Payment</button>
+        </div>
+        <div id="topUpStepPay" style="display:none;">
+          <div style="margin:10px 0; font-size:13px; color:#ddd;">Send exactly <b><span id="topUpPayAmount">0</span></b> to address:</div>
+          <div style="word-break:break-all; background:#0f1722; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); font-family:monospace;">
+            <span id="topUpPayAddress"></span>
+          </div>
+          <div style="display:flex; justify-content:center; margin:12px 0;">
+            <img id="topUpQr" src="" width="160" height="160" style="border-radius:8px; border:1px solid rgba(255,255,255,0.1);"/>
+          </div>
+          <div style="font-size:12px; color:#aaa;">Payment expires: <span id="topUpExpires"></span></div>
+          <button id="topUpCheckBtn" style="margin-top:12px; width:100%; padding:10px; border:none; background:#3498db; color:#fff; border-radius:10px; font-weight:700; cursor:pointer;">I’ve paid, Check Status</button>
+        </div>
+        <button id="topUpClose" style="margin-top:10px; width:100%; padding:8px; background:#95a5a6; border:none; color:#fff; border-radius:8px; cursor:pointer;">Close</button>
+      </div>
+    </div>
 
     <!-- === SCRIPTS === -->
     

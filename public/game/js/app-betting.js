@@ -162,8 +162,12 @@ document.body.appendChild(refreshBtn);
     const addBalanceBtn = document.getElementById('addBalanceBtn');
     if (addBalanceBtn) {
         addBalanceBtn.onclick = async () => {
-            console.log('💰 Adding test balance...');
-            await bettingClient.addTestBalance(50);
+            // Abrir modal de NOWPayments
+            const modal = document.getElementById('topUpModal');
+            if (modal) {
+                modal.style.display = 'block';
+                setupTopUpModalHandlers();
+            }
         };
     }
 
@@ -279,6 +283,114 @@ document.body.appendChild(refreshBtn);
             }
         }
     });
+}
+
+// === NOWPAYMENTS TOP-UP MODAL HANDLERS ===
+function setupTopUpModalHandlers() {
+    const modal = document.getElementById('topUpModal');
+    if (!modal) return;
+    const closeBtn = document.getElementById('topUpClose');
+    const createBtn = document.getElementById('topUpCreateBtn');
+    const checkBtn = document.getElementById('topUpCheckBtn');
+    const amountInput = document.getElementById('topUpAmount');
+    const currencySelect = document.getElementById('topUpCurrency');
+    const errorDiv = document.getElementById('topUpError');
+    const stepCreate = document.getElementById('topUpStepCreate');
+    const stepPay = document.getElementById('topUpStepPay');
+    const payAmountEl = document.getElementById('topUpPayAmount');
+    const payAddressEl = document.getElementById('topUpPayAddress');
+    const qrImg = document.getElementById('topUpQr');
+    const expEl = document.getElementById('topUpExpires');
+
+    let currentPaymentId = null;
+
+    const hideError = () => { errorDiv.style.display = 'none'; };
+    const showError = (msg) => { errorDiv.textContent = msg; errorDiv.style.display = 'block'; };
+
+    const reset = () => {
+        currentPaymentId = null;
+        hideError();
+        stepCreate.style.display = 'block';
+        stepPay.style.display = 'none';
+    };
+
+    closeBtn.onclick = () => {
+        modal.style.display = 'none';
+        reset();
+    };
+
+    createBtn.onclick = async () => {
+        try {
+            hideError();
+            const amount = parseFloat(amountInput.value);
+            const currency = currencySelect.value;
+            if (!amount || amount < 5) {
+                showError('Minimum amount is $5');
+                return;
+            }
+            if (!authManager || !authManager.user) {
+                showError('Not authenticated');
+                return;
+            }
+            const res = await fetch('/api/payments/nowpayments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(authManager ? authManager.getAuthHeaders() : {})
+                },
+                body: JSON.stringify({
+                    action: 'create_payment',
+                    amount,
+                    currency,
+                    userId: authManager.user.id
+                })
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error || 'Create payment failed');
+            currentPaymentId = data.payment.id;
+            // Mostrar instrucciones de pago
+            payAmountEl.textContent = `${data.payment.pay_amount} ${currency.toUpperCase()}`;
+            payAddressEl.textContent = data.payment.pay_address;
+            qrImg.src = data.payment.qr_code_url;
+            expEl.textContent = new Date(data.payment.expires_at).toLocaleString();
+            stepCreate.style.display = 'none';
+            stepPay.style.display = 'block';
+        } catch (e) {
+            console.error(e);
+            showError(e.message);
+        }
+    };
+
+    checkBtn.onclick = async () => {
+        try {
+            hideError();
+            if (!currentPaymentId) return;
+            const res = await fetch('/api/payments/nowpayments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(authManager ? authManager.getAuthHeaders() : {})
+                },
+                body: JSON.stringify({
+                    action: 'check_payment',
+                    paymentId: currentPaymentId
+                })
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error || 'Check failed');
+            if (data.payment.status === 'finished') {
+                // Refrescar balance y cerrar modal
+                await bettingClient.refreshBalance();
+                modal.style.display = 'none';
+                reset();
+            } else {
+                showError(`Status: ${data.payment.status}. Try again in 30-60s.`);
+            }
+        } catch (e) {
+            console.error(e);
+            showError(e.message);
+        }
+    };
 }
 
 // === FUNCIÓN PARA MANEJAR INICIO DE JUEGO ===

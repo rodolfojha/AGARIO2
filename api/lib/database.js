@@ -42,6 +42,7 @@ class Database {
                     },
                     games: {},
                     transactions: {},
+                    payments: {},
                     lastUpdate: new Date().toISOString()
                 };
                 
@@ -246,6 +247,44 @@ class Database {
         this.saveData(data);
         console.log('💳 Transaction created:', type, amount, 'for user:', userId);
         return transaction;
+    }
+
+    // === PAGOS (NOWPayments) ===
+    async createPayment(payment) {
+        const data = this.loadData();
+        if (!data.payments) data.payments = {};
+        data.payments[payment.id] = payment;
+        this.saveData(data);
+        console.log('💳 Payment stored:', payment.id, payment.status);
+        return payment;
+    }
+
+    async getPaymentById(paymentId) {
+        const data = this.loadData();
+        return data.payments ? data.payments[paymentId] : null;
+    }
+
+    async updatePaymentStatus(paymentId, newStatus) {
+        const data = this.loadData();
+        if (data.payments && data.payments[paymentId]) {
+            data.payments[paymentId].status = newStatus;
+            data.payments[paymentId].updated_at = new Date().toISOString();
+            this.saveData(data);
+            console.log('🔄 Payment status updated:', paymentId, '->', newStatus);
+            return data.payments[paymentId];
+        }
+        return null;
+    }
+
+    async addUserBalance(userId, amount) {
+        const data = this.loadData();
+        const user = data.users[userId];
+        if (!user) return null;
+        user.balance_available = (user.balance_available || 0) + parseFloat(amount);
+        data.users[userId] = user;
+        this.saveData(data);
+        console.log('💰 Balance credited:', amount, 'to', userId, 'New available:', user.balance_available);
+        return user;
     }
 
     // === ESTADÍSTICAS ===

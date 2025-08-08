@@ -20,13 +20,13 @@
       "google_id": "109860910176628260783",
       "name": "Silkroad Latino",
       "avatar": "https://lh3.googleusercontent.com/a/ACg8ocJkS7Y0_qOBcoHTw-8GXNM8FnIaP0J-H6GSJaUUnlhZtIxs7g=s96-c",
-      "balance_available": 93.60000000000002,
-      "balance_locked": 5,
-      "total_wagered": 14,
-      "total_won": 12.600000000000001,
-      "games_played": 6,
+      "balance_available": 117.50000000000003,
+      "balance_locked": 6,
+      "total_wagered": 15,
+      "total_won": 13.500000000000002,
+      "games_played": 7,
       "created_at": "2025-08-06T23:26:31.671Z",
-      "last_login": "2025-08-07T03:02:03.240Z"
+      "last_login": "2025-08-08T04:09:20.066Z"
     },
     "google-100814661542191213131": {
       "id": "google-100814661542191213131",
@@ -142,6 +142,24 @@
       "status": "cashed_out",
       "started_at": "2025-08-07T03:01:34.084Z",
       "ended_at": "2025-08-07T03:02:01.000Z"
+    },
+    "game-1754623685418-3aktsjq6k": {
+      "id": "game-1754623685418-3aktsjq6k",
+      "player_id": "google-109860910176628260783",
+      "bet_amount": 1,
+      "current_value": 1,
+      "status": "cashed_out",
+      "started_at": "2025-08-08T03:28:05.418Z",
+      "ended_at": "2025-08-08T03:29:08.875Z"
+    },
+    "game-1754625790787-ntj1nnw55": {
+      "id": "game-1754625790787-ntj1nnw55",
+      "player_id": "google-109860910176628260783",
+      "bet_amount": 1,
+      "current_value": 1,
+      "status": "active",
+      "started_at": "2025-08-08T04:03:10.787Z",
+      "ended_at": null
     }
   },
   "transactions": {
@@ -351,7 +369,70 @@
       "status": "completed",
       "metadata": "{\"gameId\":\"game-1754535694084-myrpyd319\",\"cashoutValue\":1,\"timestamp\":\"2025-08-07T03:02:01.003Z\"}",
       "created_at": "2025-08-07T03:02:01.004Z"
+    },
+    "tx-1754623685426-rhqk8vn7g": {
+      "id": "tx-1754623685426-rhqk8vn7g",
+      "user_id": "google-109860910176628260783",
+      "type": "bet",
+      "amount": 1,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754623685418-3aktsjq6k\",\"timestamp\":\"2025-08-08T03:28:05.425Z\"}",
+      "created_at": "2025-08-08T03:28:05.426Z"
+    },
+    "tx-1754623748881-w3m7ffdgd": {
+      "id": "tx-1754623748881-w3m7ffdgd",
+      "user_id": "google-109860910176628260783",
+      "type": "cashout",
+      "amount": 0.9,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754623685418-3aktsjq6k\",\"originalValue\":1,\"fee\":0.1,\"timestamp\":\"2025-08-08T03:29:08.879Z\"}",
+      "created_at": "2025-08-08T03:29:08.881Z"
+    },
+    "tx-1754623748883-caxq2ycdt": {
+      "id": "tx-1754623748883-caxq2ycdt",
+      "user_id": "google-109860910176628260783",
+      "type": "fee",
+      "amount": 0.1,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754623685418-3aktsjq6k\",\"cashoutValue\":1,\"timestamp\":\"2025-08-08T03:29:08.883Z\"}",
+      "created_at": "2025-08-08T03:29:08.884Z"
+    },
+    "tx-1754625790798-qdh7mwzv3": {
+      "id": "tx-1754625790798-qdh7mwzv3",
+      "user_id": "google-109860910176628260783",
+      "type": "bet",
+      "amount": 1,
+      "status": "completed",
+      "metadata": "{\"gameId\":\"game-1754625790787-ntj1nnw55\",\"timestamp\":\"2025-08-08T04:03:10.797Z\"}",
+      "created_at": "2025-08-08T04:03:10.798Z"
     }
   },
-  "lastUpdate": "2025-08-07T03:02:03.240Z"
+  "lastUpdate": "2025-08-08T04:09:24.710Z",
+  "payments": {
+    "devpay-1754625870025": {
+      "id": "devpay-1754625870025",
+      "userId": "google-109860910176628260783",
+      "amount": 25,
+      "currency": "usdt",
+      "status": "finished",
+      "nowpayments_id": "devpay-1754625870025",
+      "payment_url": "#",
+      "pay_amount": "0.025000",
+      "created_at": "2025-08-08T04:04:30.025Z",
+      "expires_at": "2025-08-08T05:04:30.026Z",
+      "updated_at": "2025-08-08T04:04:54.512Z"
+    },
+    "devpay-1754626164707": {
+      "id": "devpay-1754626164707",
+      "userId": "google-109860910176628260783",
+      "amount": 25,
+      "currency": "usdt",
+      "status": "waiting",
+      "nowpayments_id": "devpay-1754626164707",
+      "payment_url": "#",
+      "pay_amount": "0.025000",
+      "created_at": "2025-08-08T04:09:24.707Z",
+      "expires_at": "2025-08-08T05:09:24.709Z"
+    }
+  }
 }

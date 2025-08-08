@@ -245,6 +245,27 @@ app.post('/api/game/cashout', (req, res) => {
     });
 });
 
+// === NOWPayments proxy routes (use real handlers in /api) ===
+app.all('/api/payments/nowpayments', async (req, res) => {
+    try {
+        const mod = await import(path.join(process.cwd(), 'api', 'payments', 'nowpayments.js'));
+        return mod.default(req, res);
+    } catch (err) {
+        console.error('NOWPayments route error:', err);
+        res.status(500).json({ success: false, error: 'NOWPayments route error' });
+    }
+});
+
+app.all('/api/payments/nowpayments-webhook', async (req, res) => {
+    try {
+        const mod = await import(path.join(process.cwd(), 'api', 'payments', 'nowpayments-webhook.js'));
+        return mod.default(req, res);
+    } catch (err) {
+        console.error('NOWPayments webhook route error:', err);
+        res.status(500).json({ success: false, error: 'NOWPayments webhook route error' });
+    }
+});
+
 // === STATIC ROUTES ===
 
 // Servir index.html para la raíz
