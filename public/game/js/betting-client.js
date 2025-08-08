@@ -1,3 +1,10 @@
+// Helper function para obtener la URL base de la API
+function getApiBaseUrl() {
+    return window.location.hostname === 'localhost' ? 
+        'http://localhost:3000' : 
+        'http://128.254.207.105:3000';
+}
+
 class BettingClient {
     constructor(authManager) {
         this.auth = authManager;
@@ -9,7 +16,7 @@ class BettingClient {
         if (!this.auth.isAuthenticated) return;
 
         try {
-            const response = await fetch('/api/user/balance', {
+            const response = await fetch(`${getApiBaseUrl()}/api/user/balance`, {
                 headers: this.auth.getAuthHeaders()
             });
 
@@ -26,7 +33,7 @@ class BettingClient {
 
     async startGame(betAmount) {
         try {
-            const response = await fetch('/api/game/start', {
+            const response = await fetch(`${getApiBaseUrl()}/api/game/start`, {
                 method: 'POST',
                 headers: this.auth.getAuthHeaders(),
                 body: JSON.stringify({ betAmount })
@@ -61,7 +68,7 @@ class BettingClient {
         if (!this.currentGame) return;
 
         try {
-            const response = await fetch('/api/game/cashout', {
+            const response = await fetch(`${getApiBaseUrl()}/api/game/cashout`, {
                 method: 'POST',
                 headers: this.auth.getAuthHeaders(),
                 body: JSON.stringify({
@@ -170,7 +177,7 @@ class BettingClient {
     // Para desarrollo - agregar balance de prueba
     async addTestBalance(amount = 50) {
         try {
-            const response = await fetch('/api/user/balance', {
+            const response = await fetch(`${getApiBaseUrl()}/api/user/balance`, {
                 method: 'POST',
                 headers: this.auth.getAuthHeaders(),
                 body: JSON.stringify({ amount })

@@ -2,7 +2,16 @@
 
 const express = require('express');
 const path = require('path');
+const http = require('http');
+const socketIo = require('socket.io');
 const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
 
 // Middleware
 app.use(express.json());
@@ -245,6 +254,96 @@ app.post('/api/game/cashout', (req, res) => {
     });
 });
 
+// === NOWPayments proxy routes (use real handlers in /api) ===
+app.all('/api/payments/nowpayments', async (req, res) => {
+    try {
+        const mod = await import(path.join(process.cwd(), 'api', 'payments', 'nowpayments.js'));
+        return mod.default(req, res);
+    } catch (err) {
+        console.error('NOWPayments route error:', err);
+        res.status(500).json({ success: false, error: 'NOWPayments route error' });
+    }
+});
+
+app.all('/api/payments/nowpayments-webhook', async (req, res) => {
+    try {
+        const mod = await import(path.join(process.cwd(), 'api', 'payments', 'nowpayments-webhook.js'));
+        return mod.default(req, res);
+    } catch (err) {
+        console.error('NOWPayments webhook route error:', err);
+        res.status(500).json({ success: false, error: 'NOWPayments webhook route error' });
+    }
+});
+
+// Configuración de Google OAuth
+app.get('/api/config/google', (req, res) => {
+    console.log('🔧 Google config request');
+    
+    res.json({
+        clientId: 'dev-google-client-id',
+        apiKey: 'dev-google-api-key',
+        scope: 'email profile',
+        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/oauth2/v2/rest']
+    });
+});
+
+// === SOCKET.IO HANDLING ===
+io.on('connection', (socket) => {
+    console.log('🔌 Socket.IO client connected:', socket.id);
+    
+    const type = socket.handshake.query.type;
+    const userId = socket.handshake.query.userId;
+    const gameId = socket.handshake.query.gameId;
+    const betAmount = socket.handshake.query.betAmount;
+    
+    console.log('🎮 Game connection:', { type, userId, gameId, betAmount });
+    
+    // Manejar conexiones de jugadores
+    if (type === 'player') {
+        socket.on('gotit', (clientPlayerData) => {
+            console.log('🎯 Player data received:', clientPlayerData);
+            // Simular respuesta del servidor de juego
+            socket.emit('welcome', {
+                id: socket.id,
+                name: clientPlayerData.name,
+                x: Math.random() * 5000,
+                y: Math.random() * 5000,
+                mass: 10
+            }, {
+                width: 5000,
+                height: 5000
+            });
+        });
+        
+        socket.on('pingcheck', () => {
+            socket.emit('pongcheck');
+        });
+        
+        socket.on('respawn', () => {
+            console.log('🔄 Player respawn requested');
+            socket.emit('welcome', {
+                id: socket.id,
+                name: 'Player',
+                x: Math.random() * 5000,
+                y: Math.random() * 5000,
+                mass: 10
+            }, {
+                width: 5000,
+                height: 5000
+            });
+        });
+    }
+    
+    // Manejar conexiones de espectadores
+    if (type === 'spectator') {
+        console.log('👁️ Spectator connected');
+    }
+    
+    socket.on('disconnect', () => {
+        console.log('🔌 Socket.IO client disconnected:', socket.id);
+    });
+});
+
 // === STATIC ROUTES ===
 
 // Servir index.html para la raíz
@@ -267,16 +366,17 @@ app.get('/api/hello', (req, res) => {
 // === START SERVER ===
 
 const PORT = 3000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log('🌐 Dev server running at http://localhost:' + PORT);
     console.log('✅ APIs available:');
     console.log('  - POST /api/auth/google');
+    console.log('  - GET  /api/config/google');
     console.log('  - GET  /api/user/balance');
     console.log('  - POST /api/user/balance');
     console.log('  - POST /api/game/start');
     console.log('  - POST /api/game/cashout');
     console.log('  - GET  /api/hello');
     console.log('');
-    console.log('🎮 Ready for testing!');
+    console.log('🎮 Socket.IO ready for game connections!');
     console.log('📊 Test user has $100.00 available');
 });

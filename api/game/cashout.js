@@ -1,6 +1,9 @@
-// api/game/cashout.js - Cash out (ARCHIVO SEPARADO)
+// api/game/cashout.js - Cash out con BD unificada
+import { getDatabase } from '../lib/database.js';
 
-export default async (req, res) => {
+export default async function handler(req, res) {
+    console.log('💰 Cash out API called');
+    
     // CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -14,54 +17,106 @@ export default async (req, res) => {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    // Auth simple
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer dev-jwt-token')) {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
-
     try {
+        const db = getDatabase();
+        
+        // Verificar auth
+        const authHeader = req.headers.authorization;
+        console.log('🔍 Auth header received:', !!authHeader);
+        
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ error: 'No authorization header' });
+        }
+
+        const token = authHeader.replace('Bearer ', '');
+        console.log('🔍 Token type:', token.substring(0, 10) + '...');
+
+        // Extraer user ID del token
+        const userId = db.extractUserIdFromToken(token);
+        
+        if (!userId) {
+            console.log('❌ Unable to extract user ID from token');
+            return res.status(401).json({ error: 'Invalid token format' });
+        }
+
         const { gameId, currentValue } = req.body;
-        const userId = 'dev-user-123';
+        console.log('💸 Processing cash out:', { userId, gameId, currentValue });
 
         if (!gameId || currentValue === undefined) {
             return res.status(400).json({ error: 'Missing gameId or currentValue' });
         }
 
-        // Verificar que la base de datos global existe
-        if (!global.devDatabase) {
-            return res.status(500).json({ error: 'Database not initialized' });
+        // Obtener usuario
+        const user = await db.getUserById(userId);
+        if (!user) {
+            console.log('❌ User not found in database');
+            return res.status(401).json({ error: 'User not found' });
+        }
+
+        // Obtener juego
+        const game = await db.getGame(gameId);
+        if (!game) {
+            console.log('⚠️ Game not found:', gameId);
+            // Continuar anyway - podría ser un juego del sistema anterior
         }
 
         // Calcular cash out (90% al usuario, 10% fee)
         const fee = currentValue * 0.1;
         const netAmount = currentValue * 0.9;
+        const originalBet = game ? game.bet_amount : currentValue;
 
-        // Obtener usuario
-        let user = global.devDatabase.users.get(userId);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
+        console.log('💰 Cash out calculation:', {
+            originalValue: currentValue,
+            fee: fee,
+            netAmount: netAmount,
+            currentBalance: user.balance_available,
+            originalBet: originalBet
+        });
 
         // Actualizar balances
-        user.balance_available += netAmount;
-        user.balance_locked = Math.max(0, user.balance_locked - currentValue);
-        global.devDatabase.users.set(userId, user);
+        // Liberar fondos bloqueados y agregar las ganancias
+        const newAvailable = user.balance_available + netAmount;
+        const newLocked = Math.max(0, user.balance_locked - originalBet);
+
+        const updatedUser = await db.updateUserBalance(userId, newAvailable, newLocked);
 
         // Finalizar juego
-        const game = global.devDatabase.games.get(gameId);
         if (game) {
-            game.status = 'cashed_out';
-            game.ended_at = new Date().toISOString();
-            game.final_value = currentValue;
-            global.devDatabase.games.set(gameId, game);
+            await db.endGame(gameId, 'cashed_out', currentValue);
+            console.log('✅ Game finalized:', gameId);
         }
 
-        console.log('💰 Cash out processed:', { 
+        // Crear transacciones
+        await db.createTransaction(userId, 'cashout', netAmount, {
+            gameId: gameId,
+            originalValue: currentValue,
+            fee: fee,
+            timestamp: new Date().toISOString()
+        });
+
+        await db.createTransaction(userId, 'fee', fee, {
+            gameId: gameId,
+            cashoutValue: currentValue,
+            timestamp: new Date().toISOString()
+        });
+
+        // Actualizar estadísticas
+        if (game) {
+            await db.updateUserStats(userId, {
+                bet_amount: originalBet,
+                won: true,
+                winnings: netAmount
+            });
+        }
+
+        console.log('✅ Cash out processed successfully:', { 
+            userId,
             gameId, 
             originalValue: currentValue, 
             netAmount, 
-            fee 
+            fee,
+            newAvailableBalance: updatedUser.balance_available,
+            newLockedBalance: updatedUser.balance_locked
         });
 
         res.json({
@@ -70,16 +125,19 @@ export default async (req, res) => {
                 original_value: currentValue,
                 net_amount: netAmount,
                 fee: fee,
-                roi: game ? ((currentValue / game.bet_amount - 1) * 100).toFixed(2) : '0.00'
+                roi: game ? ((currentValue / originalBet - 1) * 100).toFixed(2) : '0.00'
             },
             balance: {
-                available: user.balance_available,
-                locked: user.balance_locked
+                available: updatedUser.balance_available,
+                locked: updatedUser.balance_locked
             }
         });
 
     } catch (error) {
-        console.error('Cash out error:', error);
-        res.status(500).json({ error: 'Failed to process cash out' });
+        console.error('🚨 Cash out error:', error);
+        res.status(500).json({ 
+            error: 'Failed to process cash out',
+            details: error.message 
+        });
     }
-};
+}
