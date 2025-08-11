@@ -164,6 +164,16 @@ class AuthManager {
         const googleLoginBtn = document.getElementById('googleLoginBtn');
         const devLoginBtn = document.getElementById('devLoginBtn');
         
+        console.log('🔧 updateUI called - isAuthenticated:', this.isAuthenticated);
+        console.log('🔧 Elements found:', {
+            loginSection: !!loginSection,
+            gameSection: !!gameSection,
+            userName: !!userName,
+            logoutBtn: !!logoutBtn,
+            googleLoginBtn: !!googleLoginBtn,
+            devLoginBtn: !!devLoginBtn
+        });
+        
         if (this.isAuthenticated && this.user) {
             if (loginSection) loginSection.style.display = 'none';
             if (gameSection) gameSection.style.display = 'block';
@@ -180,7 +190,10 @@ class AuthManager {
             if (gameSection) gameSection.style.display = 'block';
             if (userName) userName.textContent = 'Usuario';
             if (logoutBtn) logoutBtn.style.display = 'none';
-            if (googleLoginBtn) googleLoginBtn.style.display = 'block';
+            if (googleLoginBtn) {
+                googleLoginBtn.style.display = 'block';
+                console.log('🔧 Google login button display set to block');
+            }
             if (devLoginBtn) devLoginBtn.style.display = 'block';
             this.showBasicUserData();
             console.log('🔒 UI updated for guest user');

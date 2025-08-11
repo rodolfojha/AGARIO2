@@ -133,7 +133,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
-            display: flex;
+            display: flex !important;
             align-items: center;
             gap: 8px;
             font-size: 14px;
@@ -142,6 +142,11 @@
         .top-bar .google-login-btn:hover {
             background: #357AE8;
             transform: scale(1.05);
+        }
+
+        /* Forzar visibilidad del botón de Google login cuando sea necesario */
+        .top-bar .google-login-btn[style*="display: block"] {
+            display: flex !important;
         }
 
         .top-bar .dev-login-btn {
@@ -1088,7 +1093,7 @@
             </div>
 
             <!-- === PANEL DERECHO === -->
-            <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div style="display: flex; flex-direction: column; gap: 30px;">
                 <!-- === WALLET PANEL === -->
                 <div class="panel wallet-panel">
                     <div class="panel-title">▧ Wallet</div>
