@@ -145,7 +145,8 @@
         }
 
         /* Forzar visibilidad del botón de Google login cuando sea necesario */
-        .top-bar .google-login-btn[style*="display: block"] {
+        .top-bar .google-login-btn[style*="display: block"],
+        .top-bar .google-login-btn[style*="display: flex"] {
             display: flex !important;
         }
 
@@ -1020,7 +1021,7 @@
                 <button id="devLoginBtn" class="login-btn dev-login-btn" style="display: none; margin-right: 10px;">
                     🚀 Dev Login
                 </button>
-                <button id="googleLoginBtn" class="login-btn google-login-btn" style="display: none;">
+                <button id="topBarGoogleLoginBtn" class="login-btn google-login-btn" style="display: none;">
                     <svg width="18" height="18" viewBox="0 0 24 24">
                         <path fill="white" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                         <path fill="white" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -1302,16 +1303,24 @@
                 callback: handleGoogleSignIn
             });
             
-            // Renderizar el botón de Google en la top bar
-            const googleBtn = document.getElementById('googleLoginBtn');
-            if (googleBtn) {
-                google.accounts.id.renderButton(googleBtn, {
+            // Renderizar el botón de Google en la top bar (prioridad) o en la sección de login
+            const topBarGoogleBtn = document.getElementById('topBarGoogleLoginBtn');
+            const loginGoogleBtn = document.getElementById('googleLoginBtn');
+            
+            // Priorizar el botón de la top bar si está visible
+            const targetBtn = topBarGoogleBtn || loginGoogleBtn;
+            
+            if (targetBtn) {
+                console.log('🎯 Rendering Google button on:', targetBtn.id);
+                google.accounts.id.renderButton(targetBtn, {
                     theme: 'outline',
                     size: 'large',
                     text: 'signin_with',
                     shape: 'rectangular',
                     width: 200
                 });
+            } else {
+                console.error('❌ No Google login button found');
             }
         }
         
@@ -1334,6 +1343,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const devLoginBtn = document.getElementById('devLoginBtn');
             const logoutBtn = document.getElementById('logoutBtn');
+            const topBarGoogleLoginBtn = document.getElementById('topBarGoogleLoginBtn');
             
             if (devLoginBtn) {
                 devLoginBtn.addEventListener('click', function() {
@@ -1348,6 +1358,14 @@
                     if (typeof authManager !== 'undefined') {
                         authManager.logout();
                     }
+                });
+            }
+            
+            // Event listener para el botón de Google login en la top bar
+            if (topBarGoogleLoginBtn) {
+                topBarGoogleLoginBtn.addEventListener('click', function() {
+                    console.log('🔘 Top bar Google login button clicked');
+                    // El Google SDK manejará el login automáticamente
                 });
             }
         });

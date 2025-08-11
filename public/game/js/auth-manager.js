@@ -161,6 +161,7 @@ class AuthManager {
         const gameSection = document.getElementById('gameSection');
         const userName = document.getElementById('userName');
         const logoutBtn = document.getElementById('logoutBtn');
+        const topBarGoogleLoginBtn = document.getElementById('topBarGoogleLoginBtn');
         const googleLoginBtn = document.getElementById('googleLoginBtn');
         const devLoginBtn = document.getElementById('devLoginBtn');
         
@@ -170,6 +171,7 @@ class AuthManager {
             gameSection: !!gameSection,
             userName: !!userName,
             logoutBtn: !!logoutBtn,
+            topBarGoogleLoginBtn: !!topBarGoogleLoginBtn,
             googleLoginBtn: !!googleLoginBtn,
             devLoginBtn: !!devLoginBtn
         });
@@ -179,6 +181,7 @@ class AuthManager {
             if (gameSection) gameSection.style.display = 'block';
             if (userName) userName.textContent = this.user.name;
             if (logoutBtn) logoutBtn.style.display = 'block';
+            if (topBarGoogleLoginBtn) topBarGoogleLoginBtn.style.display = 'none';
             if (googleLoginBtn) googleLoginBtn.style.display = 'none';
             if (devLoginBtn) devLoginBtn.style.display = 'none';
             this.updateBalanceDisplay();
@@ -190,9 +193,13 @@ class AuthManager {
             if (gameSection) gameSection.style.display = 'block';
             if (userName) userName.textContent = 'Usuario';
             if (logoutBtn) logoutBtn.style.display = 'none';
-            if (googleLoginBtn) {
+            // Mostrar el botón de Google login en la top bar si existe
+            if (topBarGoogleLoginBtn) {
+                topBarGoogleLoginBtn.style.display = 'flex';
+                console.log('🔧 Top bar Google login button display set to flex');
+            } else if (googleLoginBtn) {
                 googleLoginBtn.style.display = 'block';
-                console.log('🔧 Google login button display set to block');
+                console.log('🔧 Login section Google login button display set to block');
             }
             if (devLoginBtn) devLoginBtn.style.display = 'block';
             this.showBasicUserData();
