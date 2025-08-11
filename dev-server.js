@@ -169,6 +169,51 @@ app.post('/api/auth/google', async (req, res) => {
     });
 });
 
+// Verificar token
+app.get('/api/auth/verify', (req, res) => {
+    console.log('🔍 Token verification request');
+    
+    const authHeader = req.headers.authorization;
+    if (!authHeader || (!authHeader.startsWith('Bearer dev-jwt-token') && !authHeader.startsWith('Bearer google-jwt-'))) {
+        return res.status(401).json({ 
+            success: false, 
+            error: 'No valid token provided' 
+        });
+    }
+
+    let user;
+    if (authHeader.startsWith('Bearer dev-jwt-token')) {
+        user = devDatabase.users.get('dev-user-123');
+    } else {
+        // Extraer user ID del token de Google
+        const tokenParts = authHeader.split('-');
+        const userId = tokenParts.slice(-2).join('-'); // Últimas dos partes: google-userId
+        user = devDatabase.users.get(userId);
+    }
+    
+    if (!user) {
+        return res.status(401).json({ 
+            success: false, 
+            error: 'User not found' 
+        });
+    }
+    
+    // Token válido
+    res.json({
+        success: true,
+        user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            avatar: user.avatar,
+            balance_available: user.balance_available,
+            balance_locked: user.balance_locked
+        }
+    });
+    
+    console.log('✅ Token verified for user:', user.name);
+});
+
 // Balance de usuario
 app.get('/api/user/balance', (req, res) => {
     console.log('📊 Balance request');
