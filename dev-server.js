@@ -259,12 +259,18 @@ app.post('/api/game/start', (req, res) => {
     console.log('🎮 Start game request:', req.body);
     
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer dev-jwt-token')) {
+    if (!authHeader || (!authHeader.startsWith('Bearer dev-jwt-token') && !authHeader.startsWith('Bearer google-jwt-'))) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const { betAmount } = req.body;
-    const userId = 'dev-user-123';
+    let userId;
+    if (authHeader.startsWith('Bearer dev-jwt-token')) {
+        userId = 'dev-user-123';
+    } else {
+        const tokenParts = authHeader.split('-');
+        userId = tokenParts.slice(-1)[0];
+    }
 
     // Validar monto
     if (!betAmount || betAmount < 1 || betAmount > 5) {
@@ -325,7 +331,7 @@ app.post('/api/payments/nowpayments', (req, res) => {
     console.log('💳 Payment request:', req.body);
     
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer dev-jwt-token')) {
+    if (!authHeader || (!authHeader.startsWith('Bearer dev-jwt-token') && !authHeader.startsWith('Bearer google-jwt-'))) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -358,12 +364,18 @@ app.post('/api/game/cashout', (req, res) => {
     console.log('💰 Cash out request:', req.body);
     
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer dev-jwt-token')) {
+    if (!authHeader || (!authHeader.startsWith('Bearer dev-jwt-token') && !authHeader.startsWith('Bearer google-jwt-'))) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const { gameId, currentValue } = req.body;
-    const userId = 'dev-user-123';
+    let userId;
+    if (authHeader.startsWith('Bearer dev-jwt-token')) {
+        userId = 'dev-user-123';
+    } else {
+        const tokenParts = authHeader.split('-');
+        userId = tokenParts.slice(-1)[0];
+    }
 
     if (!gameId || currentValue === undefined) {
         return res.status(400).json({ error: 'Missing gameId or currentValue' });
