@@ -38,6 +38,9 @@ class AuthManager {
                 console.error('Auth verification failed:', error);
                 this.logout();
             }
+        } else {
+            // No token found, ensure UI shows login state
+            this.updateUI();
         }
     }
 
