@@ -2,7 +2,7 @@
 function getApiBaseUrl() {
     return window.location.hostname === 'localhost' ? 
         'http://localhost:3000' : 
-        'http://128.254.207.105:3000';
+        'https://back.pruebatupanel.com';
 }
 
 class BettingClient {

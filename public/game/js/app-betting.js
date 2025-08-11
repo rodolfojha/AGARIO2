@@ -4,7 +4,7 @@
 function getApiBaseUrl() {
     return window.location.hostname === 'localhost' ? 
         'http://localhost:3000' : 
-        'http://128.254.207.105:3000';
+        'https://back.pruebatupanel.com';
 }
 
 // === INSTANCIAS GLOBALES ===
@@ -521,7 +521,7 @@ function startGameWithBetting(type, playerName, gameData) {
             // Conectar al game server
         const gameServerUrl = window.location.hostname === 'localhost' ? 
             'http://localhost:3001' : 
-            'http://128.254.207.105:3001';
+            'https://back.pruebatupanel.com';
     
     socket = io(gameServerUrl, { query: query });
     global.socket = socket;

@@ -1168,8 +1168,12 @@
         window.onGoogleLibraryLoad = function() {
             console.log('🔐 Google Sign-In SDK loaded');
             
-            // Obtener Client ID del servidor
-            fetch('/api/config/google')
+            // Obtener Client ID del servidor (usar API externa en producción)
+            const apiBase = window.location.hostname === 'localhost'
+                ? 'http://localhost:3000'
+                : 'https://back.pruebatupanel.com';
+
+            fetch(apiBase + '/api/config/google')
                 .then(response => response.json())
                 .then(config => {
                     if (config.clientId) {
