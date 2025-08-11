@@ -4,6 +4,8 @@ const express = require('express');
 const path = require('path');
 const http = require('http');
 const socketIo = require('socket.io');
+require('dotenv').config(); // Cargar variables de entorno
+
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -52,22 +54,23 @@ console.log('💾 In-memory database initialized');
 app.get('/api/config/google', (req, res) => {
     console.log('🔧 Google config request');
     
-    // Para desarrollo, usar un Client ID de prueba
-    const clientId = "421367768275-jjk740oflbsa4km4sic9eid674fce1fm.apps.googleusercontent.com";
+    // Usar Client ID desde variables de entorno
+    const clientId = process.env.GOOGLE_CLIENT_ID || "421367768275-jjk740oflbsa4km4sic9eid674fce1fm.apps.googleusercontent.com";
     
     res.json({
         clientId: clientId,
         configured: true,
-        source: 'development'
+        source: process.env.NODE_ENV || 'development'
     });
 });
 
-// Autenticación
-app.post('/api/auth/google', (req, res) => {
-    console.log('🔑 Auth request:', req.method, req.body);
+// Autenticación de Google
+app.post('/api/auth/google', async (req, res) => {
+    console.log('🔑 Google auth request:', req.method, req.body);
     
-    const { token } = req.body;
+    const { token, googleIdToken } = req.body;
     
+    // MODO DESARROLLO
     if (token === 'dev-token') {
         const user = devDatabase.users.get('dev-user-123');
         
@@ -83,26 +86,112 @@ app.post('/api/auth/google', (req, res) => {
             }
         });
         
-        console.log('✅ Login successful for:', user.name);
-    } else {
-        res.status(401).json({ 
-            success: false, 
-            error: 'Invalid token' 
-        });
+        console.log('✅ Dev login successful for:', user.name);
+        return;
     }
+    
+    // MODO PRODUCCIÓN - Google OAuth real
+    if (googleIdToken) {
+        try {
+            console.log('🔐 Processing Google ID token...');
+            
+            // Importar la librería de Google Auth
+            const { OAuth2Client } = require('google-auth-library');
+            
+            // Validar con Google
+            const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+            
+            const ticket = await client.verifyIdToken({
+                idToken: googleIdToken,
+                audience: process.env.GOOGLE_CLIENT_ID
+            });
+
+            const payload = ticket.getPayload();
+            console.log('✅ Google token verified for:', payload.email);
+
+            // Usar Google ID como user ID
+            const userId = 'google-' + payload.sub;
+            console.log('🔍 Using user ID:', userId);
+            
+            let user = devDatabase.users.get(userId);
+
+            if (!user) {
+                // Nuevo usuario - crear con balance inicial
+                user = {
+                    id: userId,
+                    google_id: payload.sub,
+                    email: payload.email,
+                    name: payload.name,
+                    avatar: payload.picture,
+                    balance_available: 100.00, // Balance inicial
+                    balance_locked: 0.00
+                };
+                devDatabase.users.set(userId, user);
+                console.log('🆕 New Google user created:', payload.email);
+            } else {
+                // Usuario existente - actualizar datos pero mantener balance
+                user.name = payload.name;
+                user.avatar = payload.picture;
+                devDatabase.users.set(userId, user);
+                console.log('🔄 Existing Google user updated:', payload.email);
+            }
+
+            const jwtToken = 'google-jwt-' + Date.now() + '-' + userId;
+            console.log('🎫 Generated token for user ID:', userId);
+
+            res.json({
+                success: true,
+                token: jwtToken,
+                user: {
+                    id: user.id,
+                    email: user.email,
+                    name: user.name,
+                    avatar: user.avatar,
+                    balance_available: user.balance_available,
+                    balance_locked: user.balance_locked
+                }
+            });
+
+        } catch (googleError) {
+            console.error('❌ Google token verification failed:', googleError);
+            res.status(401).json({ 
+                success: false, 
+                error: 'Invalid Google token' 
+            });
+        }
+        return;
+    }
+
+    // Token no reconocido
+    res.status(401).json({ 
+        success: false, 
+        error: 'Valid token required (dev-token or googleIdToken)' 
+    });
 });
 
 // Balance de usuario
 app.get('/api/user/balance', (req, res) => {
     console.log('📊 Balance request');
     
-    // Auth simple
+    // Auth mejorada para soportar tokens de Google
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer dev-jwt-token')) {
+    if (!authHeader || (!authHeader.startsWith('Bearer dev-jwt-token') && !authHeader.startsWith('Bearer google-jwt-'))) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const user = devDatabase.users.get('dev-user-123');
+    let user;
+    if (authHeader.startsWith('Bearer dev-jwt-token')) {
+        user = devDatabase.users.get('dev-user-123');
+    } else {
+        // Extraer user ID del token de Google
+        const tokenParts = authHeader.split('-');
+        const userId = tokenParts.slice(-1)[0]; // Última parte del token
+        user = devDatabase.users.get(userId);
+    }
+    
+    if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+    }
     
     res.json({
         success: true,
@@ -113,7 +202,7 @@ app.get('/api/user/balance', (req, res) => {
         }
     });
     
-    console.log('💰 Balance sent:', user.balance_available, 'available,', user.balance_locked, 'locked');
+    console.log('💰 Balance sent for user:', user.name, '- Available:', user.balance_available, 'Locked:', user.balance_locked);
 });
 
 // Agregar balance (para pruebas)
@@ -121,18 +210,38 @@ app.post('/api/user/balance', (req, res) => {
     console.log('💳 Add balance request:', req.body);
     
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer dev-jwt-token')) {
+    if (!authHeader || (!authHeader.startsWith('Bearer dev-jwt-token') && !authHeader.startsWith('Bearer google-jwt-'))) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const { amount } = req.body;
-    const user = devDatabase.users.get('dev-user-123');
+    let user;
+    
+    if (authHeader.startsWith('Bearer dev-jwt-token')) {
+        user = devDatabase.users.get('dev-user-123');
+    } else {
+        // Extraer user ID del token de Google
+        const tokenParts = authHeader.split('-');
+        const userId = tokenParts.slice(-1)[0]; // Última parte del token
+        user = devDatabase.users.get(userId);
+    }
+    
+    if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+    }
     
     if (amount && amount > 0) {
         user.balance_available += parseFloat(amount);
-        devDatabase.users.set('dev-user-123', user);
         
-        console.log('✅ Added $' + amount + ', new balance:', user.balance_available);
+        if (authHeader.startsWith('Bearer dev-jwt-token')) {
+            devDatabase.users.set('dev-user-123', user);
+        } else {
+            const tokenParts = authHeader.split('-');
+            const userId = tokenParts.slice(-1)[0];
+            devDatabase.users.set(userId, user);
+        }
+        
+        console.log('✅ Added $' + amount + ' for user:', user.name, '- New balance:', user.balance_available);
     }
 
     res.json({
