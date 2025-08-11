@@ -377,8 +377,10 @@ app.post('/api/game/cashout', (req, res) => {
     } else {
         // El token tiene formato: google-jwt-timestamp-google-userId
         const tokenParts = authHeader.split('-');
+        console.log('🔍 Token parts:', tokenParts);
         // Tomar las últimas dos partes: google-userId
         userId = tokenParts.slice(-2).join('-');
+        console.log('🔍 Extracted userId:', userId);
     }
 
     if (!gameId || currentValue === undefined) {
@@ -391,6 +393,18 @@ app.post('/api/game/cashout', (req, res) => {
 
     const user = devDatabase.users.get(userId);
     const game = devDatabase.games.get(gameId);
+
+    // Verificar que el usuario existe
+    if (!user) {
+        console.error('❌ User not found for ID:', userId);
+        return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Verificar que el juego existe
+    if (!game) {
+        console.error('❌ Game not found for ID:', gameId);
+        return res.status(404).json({ error: 'Game not found' });
+    }
 
     // Actualizar balances
     user.balance_available += netAmount;
