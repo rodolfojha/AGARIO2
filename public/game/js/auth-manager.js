@@ -157,16 +157,29 @@ class AuthManager {
         const loginSection = document.getElementById('loginSection');
         const gameSection = document.getElementById('gameSection');
         const userName = document.getElementById('userName');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const googleLoginBtn = document.getElementById('googleLoginBtn');
+        const devLoginBtn = document.getElementById('devLoginBtn');
         
         if (this.isAuthenticated && this.user) {
             if (loginSection) loginSection.style.display = 'none';
             if (gameSection) gameSection.style.display = 'block';
             if (userName) userName.textContent = this.user.name;
+            if (logoutBtn) logoutBtn.style.display = 'block';
+            if (googleLoginBtn) googleLoginBtn.style.display = 'none';
+            if (devLoginBtn) devLoginBtn.style.display = 'none';
             this.updateBalanceDisplay();
+            this.updateUserDisplay();
             console.log('🎮 UI updated for authenticated user');
         } else {
-            if (loginSection) loginSection.style.display = 'block';
-            if (gameSection) gameSection.style.display = 'none';
+            // Siempre mostrar el dashboard, pero con datos básicos
+            if (loginSection) loginSection.style.display = 'none';
+            if (gameSection) gameSection.style.display = 'block';
+            if (userName) userName.textContent = 'Usuario';
+            if (logoutBtn) logoutBtn.style.display = 'none';
+            if (googleLoginBtn) googleLoginBtn.style.display = 'block';
+            if (devLoginBtn) devLoginBtn.style.display = 'block';
+            this.showBasicUserData();
             console.log('🔒 UI updated for guest user');
         }
     }
@@ -215,6 +228,24 @@ class AuthManager {
             'Authorization': `Bearer ${this.token}`,
             'Content-Type': 'application/json'
         };
+    }
+
+    // Método para mostrar datos básicos cuando no hay sesión
+    showBasicUserData() {
+        const availableBalance = document.getElementById('availableBalance');
+        const userAvatar = document.getElementById('userAvatar');
+        
+        // Mostrar balance básico
+        if (availableBalance) {
+            availableBalance.textContent = '0.00';
+        }
+        
+        // Ocultar avatar
+        if (userAvatar) {
+            userAvatar.style.display = 'none';
+        }
+        
+        console.log('👤 Showing basic user data for guest user');
     }
 }
 

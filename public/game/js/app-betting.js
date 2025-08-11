@@ -97,6 +97,10 @@ if (/Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent)) {
 window.onload = async function() {
     console.log('🎮 Initializing Agar.io Betting Platform...');
     
+    // Mostrar el dashboard como página principal
+    document.getElementById('gameSection').style.display = 'block';
+    document.getElementById('loginSection').style.display = 'none';
+    
     // Esperar a que las clases estén disponibles
     if (typeof AuthManager === 'undefined' || typeof BettingClient === 'undefined') {
         console.error('❌ AuthManager or BettingClient not loaded');
