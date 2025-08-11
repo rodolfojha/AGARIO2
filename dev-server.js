@@ -185,7 +185,7 @@ app.get('/api/user/balance', (req, res) => {
     } else {
         // Extraer user ID del token de Google
         const tokenParts = authHeader.split('-');
-        const userId = tokenParts.slice(-1)[0]; // Última parte del token
+        const userId = tokenParts.slice(-2).join('-'); // Últimas dos partes: google-userId
         user = devDatabase.users.get(userId);
     }
     
@@ -222,7 +222,7 @@ app.post('/api/user/balance', (req, res) => {
     } else {
         // Extraer user ID del token de Google
         const tokenParts = authHeader.split('-');
-        const userId = tokenParts.slice(-1)[0]; // Última parte del token
+        const userId = tokenParts.slice(-2).join('-'); // Últimas dos partes: google-userId
         user = devDatabase.users.get(userId);
     }
     
@@ -237,7 +237,7 @@ app.post('/api/user/balance', (req, res) => {
             devDatabase.users.set('dev-user-123', user);
         } else {
             const tokenParts = authHeader.split('-');
-            const userId = tokenParts.slice(-1)[0];
+            const userId = tokenParts.slice(-2).join('-');
             devDatabase.users.set(userId, user);
         }
         
@@ -268,8 +268,10 @@ app.post('/api/game/start', (req, res) => {
     if (authHeader.startsWith('Bearer dev-jwt-token')) {
         userId = 'dev-user-123';
     } else {
+        // El token tiene formato: google-jwt-timestamp-google-userId
         const tokenParts = authHeader.split('-');
-        userId = tokenParts.slice(-1)[0];
+        // Tomar las últimas dos partes: google-userId
+        userId = tokenParts.slice(-2).join('-');
     }
 
     // Validar monto
@@ -373,8 +375,10 @@ app.post('/api/game/cashout', (req, res) => {
     if (authHeader.startsWith('Bearer dev-jwt-token')) {
         userId = 'dev-user-123';
     } else {
+        // El token tiene formato: google-jwt-timestamp-google-userId
         const tokenParts = authHeader.split('-');
-        userId = tokenParts.slice(-1)[0];
+        // Tomar las últimas dos partes: google-userId
+        userId = tokenParts.slice(-2).join('-');
     }
 
     if (!gameId || currentValue === undefined) {
