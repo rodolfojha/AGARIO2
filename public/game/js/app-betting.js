@@ -431,11 +431,27 @@ async function handleStartGame() {
     console.log('🎮 ========== handleStartGame STARTED ==========');
     
     const playerNameInput = document.getElementById('playerNameInput');
-    const activeBetButton = document.querySelector('.bet-btn[style*="FFED4E"]') || document.querySelector('.bet-btn');
+    
+    // Mejorar la detección del botón activo
+    let activeBetButton = document.querySelector('.bet-btn[style*="FFED4E"]');
+    if (!activeBetButton) {
+        // Buscar por color de fondo específico
+        const allBetButtons = document.querySelectorAll('.bet-btn');
+        activeBetButton = Array.from(allBetButtons).find(btn => 
+            btn.style.background === 'rgb(255, 237, 78)' || 
+            btn.style.background === '#FFED4E' ||
+            btn.classList.contains('active')
+        );
+    }
+    if (!activeBetButton) {
+        // Fallback al primer botón
+        activeBetButton = document.querySelector('.bet-btn');
+    }
     
     console.log('🔍 Raw elements:', {
         playerNameInput,
         activeBetButton,
+        activeBetButtonStyle: activeBetButton?.style.background,
         playerNameInputValue: playerNameInput?.value
     });
     
@@ -448,6 +464,7 @@ async function handleStartGame() {
     let betAmount = 1; // Valor por defecto
     if (activeBetButton) {
         betAmount = parseFloat(activeBetButton.getAttribute('data-bet'));
+        console.log('💰 Selected bet amount from button:', betAmount);
     }
     
     const playerName = playerNameInput.value.trim();
@@ -1269,10 +1286,26 @@ function reestablishEventListeners() {
     
     // Re-establecer event listeners para botones de apuesta
     const betButtons = document.querySelectorAll('.bet-btn');
-    betButtons.forEach(button => {
+    let activeButtonIndex = 0; // Por defecto el primer botón
+    
+    // Encontrar cuál botón estaba activo antes de clonar
+    betButtons.forEach((button, index) => {
+        if (button.style.background === 'rgb(255, 237, 78)' || button.style.background === '#FFED4E') {
+            activeButtonIndex = index;
+        }
+    });
+    
+    betButtons.forEach((button, index) => {
         // Remover event listeners anteriores
         const newButton = button.cloneNode(true);
         button.parentNode.replaceChild(newButton, button);
+        
+        // Restaurar el estado visual del botón activo
+        if (index === activeButtonIndex) {
+            newButton.style.background = '#FFED4E';
+        } else {
+            newButton.style.background = '#FFD700';
+        }
         
         // Agregar event listener fresco
         newButton.onclick = function() {
@@ -1294,6 +1327,16 @@ function reestablishEventListeners() {
             }
         };
     });
+    
+    // Actualizar el texto del botón JOIN GAME con el monto del botón activo
+    const activeButton = betButtons[activeButtonIndex];
+    if (activeButton) {
+        const betAmount = parseFloat(activeButton.getAttribute('data-bet'));
+        const joinGameBtn = document.getElementById('startButton');
+        if (joinGameBtn) {
+            joinGameBtn.textContent = `▷ JOIN GAME ($${betAmount})`;
+        }
+    }
     
     console.log('✅ Bet buttons listeners re-established');
     
