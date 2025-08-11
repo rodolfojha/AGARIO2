@@ -278,13 +278,13 @@ document.body.appendChild(refreshBtn);
                 if (bettingClient) {
                     console.log('🔍 bettingClient.currentGame:', bettingClient.currentGame);
                     console.log('🔍 bettingClient.currentValue:', bettingClient.currentValue);
-                    console.log('🔍 bettingClient.showCashOutModal:', typeof bettingClient.showCashOutModal);
                 }
                 if (bettingClient && bettingClient.currentGame) {
-                    console.log('✅ Calling showCashOutModal...');
-                    bettingClient.showCashOutModal(); // Usar método correcto
+                    console.log('✅ Processing cash out directly...');
+                    // Ejecutar cashout directamente sin modal
+                    handleDirectCashOut();
                 } else {
-                    console.log('❌ Cannot show cash out modal - bettingClient or currentGame not available');
+                    console.log('❌ Cannot process cash out - bettingClient or currentGame not available');
                 }
             }
             
@@ -404,6 +404,26 @@ function setupTopUpModalHandlers() {
             showError(e.message);
         }
     };
+}
+
+// === FUNCIÓN PARA MANEJAR CASHOUT DIRECTO ===
+async function handleDirectCashOut() {
+    console.log('💸 Processing direct cash out...');
+    
+    try {
+        const result = await bettingClient.cashOut();
+        if (result) {
+            console.log('✅ Cash out successful:', result);
+            if (socket) {
+                socket.disconnect();
+            }
+            returnToMenu();
+        } else {
+            console.log('❌ Cash out failed');
+        }
+    } catch (error) {
+        console.error('🚨 Cash out error:', error);
+    }
 }
 
 // === FUNCIÓN PARA MANEJAR INICIO DE JUEGO ===
@@ -543,19 +563,19 @@ function startGameWithBetting(type, playerName, gameData) {
             currentValueDisplay.style.display = 'block';
         }
         
-                       if (cashOutBtn) {
-                   cashOutBtn.style.display = 'block';
-                   cashOutBtn.onclick = () => {
-                       console.log('💰 Cash out button clicked');
-                       console.log('🔍 bettingClient exists:', !!bettingClient);
-                       console.log('🔍 currentGame exists:', !!(bettingClient && bettingClient.currentGame));
-                       if (bettingClient && bettingClient.currentGame) {
-                           bettingClient.showCashOutModal(); // Usar método correcto
-                       } else {
-                           console.log('❌ Cannot show cash out modal - bettingClient or currentGame not available');
-                       }
-                   };
-               }
+                                               if (cashOutBtn) {
+                    cashOutBtn.style.display = 'block';
+                    cashOutBtn.onclick = () => {
+                        console.log('💰 Cash out button clicked');
+                        console.log('🔍 bettingClient exists:', !!bettingClient);
+                        console.log('🔍 currentGame exists:', !!(bettingClient && bettingClient.currentGame));
+                        if (bettingClient && bettingClient.currentGame) {
+                            handleDirectCashOut(); // Ejecutar cashout directamente
+                        } else {
+                            console.log('❌ Cannot process cash out - bettingClient or currentGame not available');
+                        }
+                    };
+                }
         
         if (controlsIndicator) {
             controlsIndicator.style.display = 'block';
