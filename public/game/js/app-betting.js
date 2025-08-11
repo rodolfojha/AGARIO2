@@ -276,7 +276,7 @@ document.body.appendChild(refreshBtn);
                 console.log('🔍 bettingClient exists:', !!bettingClient);
                 console.log('🔍 currentGame exists:', !!(bettingClient && bettingClient.currentGame));
                 if (bettingClient && bettingClient.currentGame) {
-                    bettingClient.showCashOutModalAlternative(); // Usar método alternativo
+                    bettingClient.showCashOutModal(); // Usar método correcto
                 } else {
                     console.log('❌ Cannot show cash out modal - bettingClient or currentGame not available');
                 }
