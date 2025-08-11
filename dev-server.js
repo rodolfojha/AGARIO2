@@ -373,37 +373,165 @@ app.post('/api/game/start', (req, res) => {
     });
 });
 
-// Pagos (simulado para desarrollo)
-app.post('/api/payments/nowpayments', (req, res) => {
-    console.log('💳 Payment request:', req.body);
+// Integración con NOWPayments
+const nowpayments = require('./api/payments/nowpayments.js');
+const webhook = require('./api/payments/nowpayments-webhook.js');
+
+// Crear pago con NOWPayments
+app.post('/api/payments/nowpayments', async (req, res) => {
+    console.log('💳 NOWPayments payment request:', req.body);
     
     const authHeader = req.headers.authorization;
     if (!authHeader || (!authHeader.startsWith('Bearer dev-jwt-token') && !authHeader.startsWith('Bearer google-jwt-'))) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { amount, currency = 'USD' } = req.body;
+    const { action, amount, currency = 'usdt', userId } = req.body;
     
-    if (!amount || amount < 1) {
-        return res.status(400).json({ error: 'Invalid amount' });
-    }
-
-    // Simular respuesta de pago
-    const paymentId = 'pay_' + Date.now();
-    
-    res.json({
-        success: true,
-        payment: {
-            id: paymentId,
-            amount: amount,
-            currency: currency,
-            status: 'pending',
-            payment_url: `https://example.com/pay/${paymentId}`,
-            created_at: new Date().toISOString()
+    if (action === 'create_payment') {
+        if (!amount || amount < 5) {
+            return res.status(400).json({ error: 'Minimum amount is $5' });
         }
-    });
+
+        if (!userId) {
+            return res.status(400).json({ error: 'User ID required' });
+        }
+
+        try {
+            const orderId = `deposit_${userId}_${Date.now()}`;
+            const result = await nowpayments.createPayment(amount, currency, orderId);
+            
+            if (result.success) {
+                console.log('✅ NOWPayments payment created:', result.payment.id);
+                res.json({
+                    success: true,
+                    payment: {
+                        id: result.payment.id,
+                        pay_address: result.payment.pay_address,
+                        pay_amount: result.payment.pay_amount,
+                        pay_currency: result.payment.pay_currency,
+                        price_amount: result.payment.price_amount,
+                        price_currency: result.payment.price_currency,
+                        qr_code_url: result.payment.qr_code_url,
+                        created_at: result.payment.created_at,
+                        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 horas
+                    }
+                });
+            } else {
+                console.error('❌ NOWPayments payment creation failed:', result.error);
+                res.status(500).json({
+                    success: false,
+                    error: result.error
+                });
+            }
+        } catch (error) {
+            console.error('❌ NOWPayments error:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Payment creation failed'
+            });
+        }
+    } else if (action === 'check_payment') {
+        const { paymentId } = req.body;
+        
+        if (!paymentId) {
+            return res.status(400).json({ error: 'Payment ID required' });
+        }
+
+        try {
+            const result = await nowpayments.checkPaymentStatus(paymentId);
+            
+            if (result.success) {
+                console.log('✅ NOWPayments payment status checked:', result.payment.payment_status);
+                res.json({
+                    success: true,
+                    payment: {
+                        id: result.payment.id,
+                        status: result.payment.payment_status,
+                        pay_address: result.payment.pay_address,
+                        pay_amount: result.payment.pay_amount,
+                        pay_currency: result.payment.pay_currency,
+                        price_amount: result.payment.price_amount,
+                        price_currency: result.payment.price_currency,
+                        actually_paid: result.payment.actually_paid,
+                        actually_paid_at: result.payment.actually_paid_at
+                    }
+                });
+            } else {
+                console.error('❌ NOWPayments payment check failed:', result.error);
+                res.status(500).json({
+                    success: false,
+                    error: result.error
+                });
+            }
+        } catch (error) {
+            console.error('❌ NOWPayments check error:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Payment check failed'
+            });
+        }
+    } else {
+        res.status(400).json({ error: 'Invalid action' });
+    }
+});
+
+// Webhook para NOWPayments IPN
+app.post('/api/payments/nowpayments-webhook', async (req, res) => {
+    console.log('🔔 NOWPayments webhook received');
     
-    console.log('💳 Payment created:', paymentId, 'Amount:', amount);
+    try {
+        const payload = req.body;
+        const signature = req.headers['x-nowpayments-sig']; // NOWPayments signature header
+        
+        const result = await webhook.processWebhook(payload, signature);
+        
+        if (result.success) {
+            console.log('✅ Webhook processed successfully:', result.action);
+            res.json({ success: true });
+        } else {
+            console.error('❌ Webhook processing failed:', result.error);
+            res.status(400).json({ success: false, error: result.error });
+        }
+    } catch (error) {
+        console.error('❌ Webhook error:', error);
+        res.status(500).json({ success: false, error: 'Webhook processing failed' });
+    }
+});
+
+// Obtener monedas disponibles
+app.get('/api/payments/currencies', async (req, res) => {
+    try {
+        const result = await nowpayments.getAvailableCurrencies();
+        
+        if (result.success) {
+            // Filtrar solo las monedas más populares
+            const popularCurrencies = [
+                'btc', 'eth', 'usdt', 'usdc', 'bnb', 'ada', 'dot', 'sol', 'matic', 'avax',
+                'ltc', 'doge', 'trx', 'xrp', 'link', 'uni', 'atom', 'xlm', 'vet', 'fil'
+            ];
+            
+            const filtered = result.currencies.filter(c => 
+                popularCurrencies.includes(String(c).toLowerCase())
+            );
+            
+            res.json({
+                success: true,
+                currencies: filtered
+            });
+        } else {
+            res.status(500).json({
+                success: false,
+                error: result.error
+            });
+        }
+    } catch (error) {
+        console.error('❌ Get currencies error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get currencies'
+        });
+    }
 });
 
 // Cash out

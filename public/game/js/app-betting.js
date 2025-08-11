@@ -173,6 +173,7 @@ document.body.appendChild(refreshBtn);
             const modal = document.getElementById('topUpModal');
             if (modal) {
                 modal.style.display = 'block';
+                await loadAvailableCurrencies();
                 setupTopUpModalHandlers();
             }
         };
@@ -299,6 +300,39 @@ document.body.appendChild(refreshBtn);
 }
 
 // === NOWPAYMENTS TOP-UP MODAL HANDLERS ===
+
+// Función para cargar monedas disponibles
+async function loadAvailableCurrencies() {
+    try {
+        console.log('🪙 Loading available currencies...');
+        
+        const res = await fetch(`${getApiBaseUrl()}/api/payments/currencies`);
+        const data = await res.json();
+        
+        if (data.success && data.currencies) {
+            const currencySelect = document.getElementById('topUpCurrency');
+            if (currencySelect) {
+                // Limpiar opciones existentes
+                currencySelect.innerHTML = '';
+                
+                // Agregar opciones
+                data.currencies.forEach(currency => {
+                    const option = document.createElement('option');
+                    option.value = currency.toLowerCase();
+                    option.textContent = currency.toUpperCase();
+                    currencySelect.appendChild(option);
+                });
+                
+                console.log('✅ Loaded currencies:', data.currencies);
+            }
+        } else {
+            console.error('❌ Failed to load currencies:', data.error);
+        }
+    } catch (error) {
+        console.error('❌ Error loading currencies:', error);
+    }
+}
+
 function setupTopUpModalHandlers() {
     const modal = document.getElementById('topUpModal');
     if (!modal) return;
@@ -345,6 +379,9 @@ function setupTopUpModalHandlers() {
                 showError('Not authenticated');
                 return;
             }
+            
+            console.log('💳 Creating NOWPayments payment:', { amount, currency, userId: authManager.user.id });
+            
             const res = await fetch(`${getApiBaseUrl()}/api/payments/nowpayments`, {
                 method: 'POST',
                 headers: {
@@ -358,18 +395,26 @@ function setupTopUpModalHandlers() {
                     userId: authManager.user.id
                 })
             });
+            
             const data = await res.json();
+            console.log('💳 NOWPayments response:', data);
+            
             if (!data.success) throw new Error(data.error || 'Create payment failed');
+            
             currentPaymentId = data.payment.id;
+            
             // Mostrar instrucciones de pago
-            payAmountEl.textContent = `${data.payment.pay_amount} ${currency.toUpperCase()}`;
+            payAmountEl.textContent = `${data.payment.pay_amount} ${data.payment.pay_currency.toUpperCase()}`;
             payAddressEl.textContent = data.payment.pay_address;
             qrImg.src = data.payment.qr_code_url;
             expEl.textContent = new Date(data.payment.expires_at).toLocaleString();
+            
             stepCreate.style.display = 'none';
             stepPay.style.display = 'block';
+            
+            console.log('✅ Payment created successfully:', data.payment.id);
         } catch (e) {
-            console.error(e);
+            console.error('❌ Payment creation error:', e);
             showError(e.message);
         }
     };
@@ -378,6 +423,9 @@ function setupTopUpModalHandlers() {
         try {
             hideError();
             if (!currentPaymentId) return;
+            
+            console.log('🔍 Checking NOWPayments payment status:', currentPaymentId);
+            
             const res = await fetch(`${getApiBaseUrl()}/api/payments/nowpayments`, {
                 method: 'POST',
                 headers: {
@@ -389,18 +437,38 @@ function setupTopUpModalHandlers() {
                     paymentId: currentPaymentId
                 })
             });
+            
             const data = await res.json();
+            console.log('🔍 NOWPayments status response:', data);
+            
             if (!data.success) throw new Error(data.error || 'Check failed');
+            
             if (data.payment.status === 'finished') {
+                console.log('✅ Payment finished - updating balance');
                 // Refrescar balance y cerrar modal
                 await bettingClient.refreshBalance();
                 modal.style.display = 'none';
                 reset();
+            } else if (data.payment.status === 'confirmed') {
+                console.log('✅ Payment confirmed - waiting for final confirmation');
+                showError(`Payment confirmed! Waiting for final confirmation. Try again in 30-60s.`);
+            } else if (data.payment.status === 'waiting') {
+                console.log('⏳ Payment waiting - user needs to complete payment');
+                showError(`Payment waiting. Please complete the payment and try again.`);
+            } else if (data.payment.status === 'expired') {
+                console.log('❌ Payment expired');
+                showError(`Payment expired. Please create a new payment.`);
+                reset();
+            } else if (data.payment.status === 'failed') {
+                console.log('❌ Payment failed');
+                showError(`Payment failed. Please try again.`);
+                reset();
             } else {
+                console.log('ℹ️ Unknown payment status:', data.payment.status);
                 showError(`Status: ${data.payment.status}. Try again in 30-60s.`);
             }
         } catch (e) {
-            console.error(e);
+            console.error('❌ Payment check error:', e);
             showError(e.message);
         }
     };
