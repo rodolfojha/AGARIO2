@@ -205,6 +205,59 @@
             display: flex !important;
         }
 
+        /* Estilo para el botón de logout más pequeño */
+        .logout-btn {
+            background: linear-gradient(135deg, #ff4757, #ff3742);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3);
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4);
+        }
+
+        .logout-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Asegurar que los botones de apuesta funcionen correctamente */
+        .bet-btn {
+            background: linear-gradient(135deg, #2f3542, #3742fa);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 8px;
+            box-shadow: 0 4px 15px rgba(55, 66, 250, 0.3);
+        }
+
+        .bet-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(55, 66, 250, 0.4);
+        }
+
+        .bet-btn.active {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #2f3542;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+        }
+
+        .bet-btn.active:hover {
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
+        }
+
         .header .dev-login-btn {
             background: #ffd700;
             color: #000;
@@ -365,7 +418,7 @@
             margin-bottom: 30px;
         }
 
-        .amount-btn {
+        .amount-btn, .bet-btn {
             background: transparent;
             border: 2px solid #ffd700;
             color: #ffd700;
@@ -378,7 +431,8 @@
             min-width: 80px;
         }
 
-        .amount-btn.active, .amount-btn:hover {
+        .amount-btn.active, .amount-btn:hover,
+        .bet-btn.active, .bet-btn:hover {
             background: #ffd700;
             color: black;
             transform: translateY(-2px);
@@ -1248,10 +1302,19 @@
             font-size: 14px;
             outline: none;
             margin: 0 10px;
+            width: 200px;
+            display: inline-block;
+            pointer-events: auto;
+            z-index: 1000;
         }
 
         .username-input:focus {
             border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .username-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
         }
 
         /* Mobile Controls */
@@ -1428,7 +1491,7 @@
                 <div class="logo">🐻</div>
                 <span class="welcome-text">Welcome, <span id="userName">bruh!</span></span>
             </div>
-            <button id="logoutBtn" class="login-btn" style="display: none;">Logout</button>
+            <button id="logoutBtn" class="logout-btn" style="display: none;">Logout</button>
             <button id="devLoginBtn" class="dev-login-btn" style="display: none;">
                 🚀 Dev Login
             </button>
@@ -1491,20 +1554,20 @@
                 <h1 class="main-logo">DAMN<span style="color: #ffd700;">BRUH</span></h1>
                 <p class="tagline">SKILL-BASED BETTING</p>
 
-                <div class="login-prompt">
-                    <div class="help-icon">?</div>
-                    <span>Login to set your name</span>
-                    <input type="text" id="playerNameInput" class="username-input" placeholder="Tu nombre en el juego" maxlength="25" autofocus />
-                    <div class="edit-icon">✏️</div>
-                </div>
+                        <div class="login-prompt">
+            <div class="help-icon">?</div>
+            <span>Set your name</span>
+            <input type="text" id="playerNameInput" class="username-input" placeholder="Tu nombre en el juego" maxlength="25" autofocus />
+            <div class="edit-icon">✏️</div>
+        </div>
 
-                <div class="betting-amounts">
-                    <button class="amount-btn active" data-bet="1">$1</button>
-                    <button class="amount-btn" data-bet="5">$5</button>
-                    <button class="amount-btn" data-bet="20">$20</button>
-                </div>
+        <div class="betting-amounts">
+            <button class="bet-btn active" data-bet="1">$1</button>
+            <button class="bet-btn" data-bet="5">$5</button>
+            <button class="bet-btn" data-bet="20">$20</button>
+        </div>
 
-                <button id="startButton" class="join-game-btn">▶ JOIN GAME</button>
+        <button id="startButton" class="join-game-btn">▶ JOIN GAME</button>
 
                 <div class="game-options">
                     <button class="region-btn">🌎 US</button>
@@ -1682,45 +1745,7 @@
             });
         });
 
-        // Join Game Button Animation
-        document.querySelector('.join-game-btn').addEventListener('click', function() {
-            this.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                this.style.transform = 'translateY(-3px)';
-            }, 150);
-        });
-
-        // Wallet actions
-        document.querySelector('.add-funds-btn').addEventListener('click', function() {
-            alert('Add Funds functionality would be implemented here');
-        });
-
-        document.querySelector('.cash-out-btn').addEventListener('click', function() {
-            alert('Cash Out functionality would be implemented here');
-        });
-
-        // Login button
-        document.querySelector('.login-btn').addEventListener('click', function() {
-            alert('Login functionality would be implemented here');
-        });
-
-        // Copy address functionality
-        document.querySelector('.wallet-action').addEventListener('click', function() {
-            if (this.textContent.includes('Copy Address')) {
-                navigator.clipboard.writeText('Sample-Wallet-Address-123456789');
-                this.textContent = '✅ Copied!';
-                setTimeout(() => {
-                    this.textContent = '📋 Copy Address';
-                }, 2000);
-            }
-        });
-
-        // Add some hover effects and animations
-        document.querySelectorAll('button').forEach(btn => {
-            btn.addEventListener('mouseenter', function() {
-                this.style.transition = 'all 0.3s ease';
-            });
-        });
+        // Los event listeners se manejan en app-betting.js para evitar conflictos
 
         // Agar.io Battle System
         class AgarCell {
