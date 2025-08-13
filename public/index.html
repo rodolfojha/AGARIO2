@@ -24,7 +24,7 @@
             }
         }
         .background-animated {
-            background-image: url('lava.png');
+            background-image: url('images/lava.png');
             background-size: 1920px 1080px;
             animation: slide 30s linear infinite;
             width: 100%;
@@ -64,6 +64,178 @@
             background-position: right center;
             transform: scale(1.02);
         }
+
+        /* Mantener estilos específicos de la aplicación */
+        #gameAreaWrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+        }
+
+        /* Game Elements */
+        #cashOutBtn {
+            position: absolute;
+            top: 80px;
+            left: 20px;
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+            z-index: 98;
+            transition: all 0.3s ease;
+            display: none;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        #cashOutBtn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #e67e22, #d35400);
+        }
+
+        #currentValueDisplay {
+            position: absolute;
+            top: 140px;
+            left: 20px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: none;
+            z-index: 99;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #status {
+            position: absolute;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #FFF;
+            font-size: 16px;
+            top: 20px;
+            right: 20px;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chatbox {
+            position: absolute;
+            width: 300px;
+            height: 320px;
+            background: rgba(22, 22, 22, 0.9);
+            bottom: 20px;
+            left: 20px;
+            border-radius: 8px;
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-list {
+            padding: 10px;
+            margin: 0;
+            list-style: none;
+            height: 285px;
+            overflow: hidden;
+        }
+
+        .chat-input {
+            pointer-events: all;
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            outline: none;
+            color: white;
+        }
+
+        /* Login Section */
+        #loginSection {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        /* Game Section */
+        #gameSection {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1001;
+        }
+
+        /* Modales */
+        #cashOutModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            display: none;
+        }
+
+        #topUpModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            display: none;
+        }
+
+        #cashOutResult {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2ecc71;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1001;
+            display: none;
+            text-align: center;
+        }
+
+        /* Responsive */
+        @media only screen and (max-width: 768px) {
+            .grid-cols-1.md\\:grid-cols-3.lg\\:grid-cols-3 {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body class="font-sans text-white relative overflow-hidden">
@@ -85,11 +257,11 @@
 
         <!-- === PANELES PRINCIPALES === -->
         <main class="flex flex-col items-center justify-center h-[calc(100vh-100px)] p-4">
-            <!-- Logo principal y nombre en el centro -->
-            <div class="flex items-center justify-center mb-8">
-                <img src="playstore-icon.jpg" alt="Logo de Splitta.io" class="w-24 h-24 mr-4">
-                <span class="text-6xl font-bold italic text-white uppercase">SPLITTA.<span class="text-yellow-400">IO</span></span>
-            </div>
+                         <!-- Logo principal y nombre en el centro -->
+             <div class="flex items-center justify-center mb-8">
+                 <img src="images/playstore-icon.png" alt="Logo de Splitta.io" class="w-24 h-24 mr-4">
+                 <span class="text-6xl font-bold italic text-white uppercase">SPLITTA.<span class="text-yellow-400">IO</span></span>
+             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4 w-full max-w-6xl mt-8">
                 <!-- Columna izquierda: Leaderboard y Friends -->
@@ -207,8 +379,49 @@
         </main>
     </div>
 
-    <!-- Canvas para la animación de los círculos -->
-    <canvas id="gameCanvas"></canvas>
+         <!-- Canvas para la animación de los círculos -->
+     <canvas id="gameCanvas"></canvas>
+
+     <!-- === ÁREA DE JUEGO === -->
+     <div id="gameAreaWrapper">
+         <!-- Botón de cash out -->
+         <button id="cashOutBtn">💰 Cash Out</button>
+         
+         <!-- Display de valor actual -->
+         <div id="currentValueDisplay">
+             <div>Valor: $<span id="valueAmount">0.00</span></div>
+             <div>ROI: <span id="roiAmount">0%</span></div>
+         </div>
+
+         <!-- Indicador de controles -->
+         <div id="controlsIndicator" style="display: none;">
+             <div style="background: rgba(0,0,0,0.8); color: white; padding: 10px; border-radius: 8px; font-size: 12px; position: absolute; bottom: 20px; left: 20px; z-index: 97;">
+                 <div><strong>🎮 Controls:</strong></div>
+                 <div>C = Cash Out</div>
+                 <div>ESC = Exit Game</div>
+             </div>
+         </div>
+
+         <!-- Leaderboard -->
+         <div id="status">
+             <span class="title">Leaderboard</span>
+         </div>
+         
+         <!-- Chat -->
+         <div class="chatbox" id="chatbox">
+             <ul id="chatList" class="chat-list"></ul>
+             <input id="chatInput" type="text" class="chat-input" placeholder="Chat aquí..." maxlength="35" />
+         </div>
+         
+         <!-- Controles móviles -->
+         <div id="mobile">
+             <button id="split" style="position: absolute; bottom: 10px; left: 10px; width: 100px; height: 100px;">Split</button>
+             <button id="feed" style="position: absolute; bottom: 10px; right: 10px; width: 100px; height: 100px;">Feed</button>
+         </div>
+         
+         <!-- Canvas principal -->
+         <canvas tabindex="1" id="cvs"></canvas>
+     </div>
 
     <!-- === MODAL DE CASH OUT === -->
     <div id="cashOutModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000;">
