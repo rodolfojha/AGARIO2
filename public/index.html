@@ -218,7 +218,14 @@
              visibility: hidden;
              transition: opacity 0.3s, visibility 0.3s;
              z-index: 2000; /* Mayor z-index para estar por encima del dashboard */
-             background: rgba(0, 0, 0, 0.8);
+             background: #f0f0f0; /* Fondo claro para el juego */
+         }
+         
+         /* Ocultar fondo animado cuando el juego esté activo */
+         #gameAreaWrapper.active ~ .background-animated,
+         #gameAreaWrapper.active + .background-animated {
+             opacity: 0;
+             transition: opacity 0.3s;
          }
          
          #gameAreaWrapper.active {
@@ -755,13 +762,18 @@
                                        gameSection.style.display = 'none';
                                    }
                                    
-                                   // Mostrar área de juego con transición suave
-                                   if (gameAreaWrapper) {
-                                       gameAreaWrapper.style.display = 'block';
-                                       setTimeout(() => {
-                                           gameAreaWrapper.classList.add('active');
-                                       }, 10);
-                                   }
+                                                        // Mostrar área de juego con transición suave
+                     if (gameAreaWrapper) {
+                         gameAreaWrapper.style.display = 'block';
+                         setTimeout(() => {
+                             gameAreaWrapper.classList.add('active');
+                             // Ocultar fondo animado
+                             const backgroundAnimated = document.querySelector('.background-animated');
+                             if (backgroundAnimated) {
+                                 backgroundAnimated.style.opacity = '0';
+                             }
+                         }, 10);
+                     }
                                   
                                   // Conectar al servidor del juego
                                   const socketUrl = window.location.hostname === 'localhost'
@@ -816,14 +828,19 @@
                         gameSection.style.display = 'none';
                     }
                     
-                    // Mostrar área de juego con transición suave
-                    if (gameAreaWrapper) {
-                        gameAreaWrapper.style.display = 'block';
-                        // Usar setTimeout para permitir que el display se aplique antes de la transición
-                        setTimeout(() => {
-                            gameAreaWrapper.classList.add('active');
-                        }, 10);
-                    }
+                                         // Mostrar área de juego con transición suave
+                     if (gameAreaWrapper) {
+                         gameAreaWrapper.style.display = 'block';
+                         // Usar setTimeout para permitir que el display se aplique antes de la transición
+                         setTimeout(() => {
+                             gameAreaWrapper.classList.add('active');
+                             // Ocultar fondo animado
+                             const backgroundAnimated = document.querySelector('.background-animated');
+                             if (backgroundAnimated) {
+                                 backgroundAnimated.style.opacity = '0';
+                             }
+                         }, 10);
+                     }
                    
                    // Conectar al servidor del juego
                    const socketUrl = window.location.hostname === 'localhost'
@@ -858,14 +875,20 @@
                    backToDashboardBtn.addEventListener('click', () => {
                        console.log('🏠 Volviendo al dashboard...');
                        
-                       // Ocultar área de juego
-                       const gameAreaWrapper = document.getElementById('gameAreaWrapper');
-                       if (gameAreaWrapper) {
-                           gameAreaWrapper.classList.remove('active');
-                           setTimeout(() => {
-                               gameAreaWrapper.style.display = 'none';
-                           }, 300);
-                       }
+                                               // Ocultar área de juego
+                        const gameAreaWrapper = document.getElementById('gameAreaWrapper');
+                        if (gameAreaWrapper) {
+                            gameAreaWrapper.classList.remove('active');
+                            setTimeout(() => {
+                                gameAreaWrapper.style.display = 'none';
+                            }, 300);
+                        }
+                        
+                        // Restaurar fondo animado
+                        const backgroundAnimated = document.querySelector('.background-animated');
+                        if (backgroundAnimated) {
+                            backgroundAnimated.style.opacity = '1';
+                        }
                        
                        // Mostrar dashboard
                        const gameSection = document.getElementById('gameSection');
