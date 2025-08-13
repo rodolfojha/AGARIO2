@@ -504,8 +504,8 @@
     <script src="game/js/chat-client.js"></script>
     <script src="game/js/app-betting.js"></script>
          <script>
-         // Inicializar AuthManager cuando se cargue la página
-         let authManager = null;
+         // Usar la variable authManager global existente
+         // authManager ya está declarado en app-betting.js
          
          window.onGoogleLibraryLoad = function() {
              console.log('🔐 Google Sign-In SDK loaded');
@@ -633,16 +633,19 @@
                  });
              }
              
-             // Inicializar AuthManager
-             if (typeof AuthManager !== 'undefined') {
-                 authManager = new AuthManager();
-                 authManager.initialize().then(() => {
-                     console.log('✅ AuthManager initialized');
-                     updateLoginButtons();
-                 });
-             } else {
-                 console.error('❌ AuthManager class not found');
-             }
+                           // Inicializar AuthManager si no está ya inicializado
+              if (typeof AuthManager !== 'undefined' && !authManager) {
+                  authManager = new AuthManager();
+                  authManager.initialize().then(() => {
+                      console.log('✅ AuthManager initialized');
+                      updateLoginButtons();
+                  });
+              } else if (authManager) {
+                  console.log('✅ AuthManager already exists, updating UI');
+                  updateLoginButtons();
+              } else {
+                  console.error('❌ AuthManager class not found');
+              }
          });
         window.addEventListener('error', function(e) {
             console.error('🚨 Global error:', e.error);
