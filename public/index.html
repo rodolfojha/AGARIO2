@@ -196,16 +196,35 @@
             z-index: 2000;
         }
 
-        /* Game Section */
-        #gameSection {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1001;
-        }
+                 /* Game Section */
+         #gameSection {
+             display: block;
+             position: fixed;
+             top: 0;
+             left: 0;
+             width: 100%;
+             height: 100%;
+             z-index: 1001;
+         }
+         
+         /* Game Area Wrapper - Área donde se ejecuta el juego */
+         #gameAreaWrapper {
+             position: fixed;
+             top: 0;
+             left: 0;
+             width: 100%;
+             height: 100%;
+             opacity: 0;
+             visibility: hidden;
+             transition: opacity 0.3s, visibility 0.3s;
+             z-index: 2000; /* Mayor z-index para estar por encima del dashboard */
+             background: rgba(0, 0, 0, 0.8);
+         }
+         
+         #gameAreaWrapper.active {
+             opacity: 1;
+             visibility: visible;
+         }
 
         /* Modales */
         #cashOutModal {
@@ -410,10 +429,15 @@
          <!-- Canvas para la animación de los círculos -->
      <canvas id="gameCanvas"></canvas>
 
-     <!-- === ÁREA DE JUEGO === -->
-     <div id="gameAreaWrapper">
-         <!-- Botón de cash out -->
-         <button id="cashOutBtn">💰 Cash Out</button>
+           <!-- === ÁREA DE JUEGO === -->
+      <div id="gameAreaWrapper">
+          <!-- Botón para volver al dashboard -->
+          <button id="backToDashboard" style="position: absolute; top: 20px; left: 20px; background: #e74c3c; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; z-index: 2001;">
+              ← Volver al Dashboard
+          </button>
+          
+          <!-- Botón de cash out -->
+          <button id="cashOutBtn">💰 Cash Out</button>
          
          <!-- Display de valor actual -->
          <div id="currentValueDisplay">
@@ -722,15 +746,22 @@
                                   const gameData = await response.json();
                                   console.log('✅ Game started successfully:', gameData);
                                   
-                                  // Ocultar dashboard y mostrar juego
-                                  const gameSection = document.getElementById('gameSection');
-                                  const gameAreaWrapper = document.getElementById('gameAreaWrapper');
-                                  
-                                  if (gameSection) gameSection.style.display = 'none';
-                                  if (gameAreaWrapper) {
-                                      gameAreaWrapper.style.display = 'block';
-                                      gameAreaWrapper.style.opacity = '1';
-                                  }
+                                                                     // Ocultar dashboard y mostrar juego
+                                   const gameSection = document.getElementById('gameSection');
+                                   const gameAreaWrapper = document.getElementById('gameAreaWrapper');
+                                   
+                                   // Ocultar dashboard
+                                   if (gameSection) {
+                                       gameSection.style.display = 'none';
+                                   }
+                                   
+                                   // Mostrar área de juego con transición suave
+                                   if (gameAreaWrapper) {
+                                       gameAreaWrapper.style.display = 'block';
+                                       setTimeout(() => {
+                                           gameAreaWrapper.classList.add('active');
+                                       }, 10);
+                                   }
                                   
                                   // Conectar al servidor del juego
                                   const socketUrl = window.location.hostname === 'localhost'
@@ -772,19 +803,27 @@
                   });
                              }
                
-               // Función para conectar al servidor del juego
-               async function connectToGameServer(gameData, playerName) {
-                   console.log('🎮 Connecting to game server...');
-                   
-                   // Ocultar dashboard y mostrar juego
-                   const gameSection = document.getElementById('gameSection');
-                   const gameAreaWrapper = document.getElementById('gameAreaWrapper');
-                   
-                   if (gameSection) gameSection.style.display = 'none';
-                   if (gameAreaWrapper) {
-                       gameAreaWrapper.style.display = 'block';
-                       gameAreaWrapper.style.opacity = '1';
-                   }
+                               // Función para conectar al servidor del juego
+                async function connectToGameServer(gameData, playerName) {
+                    console.log('🎮 Connecting to game server...');
+                    
+                    // Ocultar dashboard y mostrar juego
+                    const gameSection = document.getElementById('gameSection');
+                    const gameAreaWrapper = document.getElementById('gameAreaWrapper');
+                    
+                    // Ocultar dashboard
+                    if (gameSection) {
+                        gameSection.style.display = 'none';
+                    }
+                    
+                    // Mostrar área de juego con transición suave
+                    if (gameAreaWrapper) {
+                        gameAreaWrapper.style.display = 'block';
+                        // Usar setTimeout para permitir que el display se aplique antes de la transición
+                        setTimeout(() => {
+                            gameAreaWrapper.classList.add('active');
+                        }, 10);
+                    }
                    
                    // Conectar al servidor del juego
                    const socketUrl = window.location.hostname === 'localhost'
@@ -811,6 +850,35 @@
                    
                    // Hacer el socket disponible globalmente
                    window.gameSocket = socket;
+               }
+               
+               // Botón para volver al dashboard
+               const backToDashboardBtn = document.getElementById('backToDashboard');
+               if (backToDashboardBtn) {
+                   backToDashboardBtn.addEventListener('click', () => {
+                       console.log('🏠 Volviendo al dashboard...');
+                       
+                       // Ocultar área de juego
+                       const gameAreaWrapper = document.getElementById('gameAreaWrapper');
+                       if (gameAreaWrapper) {
+                           gameAreaWrapper.classList.remove('active');
+                           setTimeout(() => {
+                               gameAreaWrapper.style.display = 'none';
+                           }, 300);
+                       }
+                       
+                       // Mostrar dashboard
+                       const gameSection = document.getElementById('gameSection');
+                       if (gameSection) {
+                           gameSection.style.display = 'block';
+                       }
+                       
+                       // Desconectar del servidor del juego si existe
+                       if (window.gameSocket) {
+                           window.gameSocket.disconnect();
+                           window.gameSocket = null;
+                       }
+                   });
                }
                
                // Botón Dev Login
