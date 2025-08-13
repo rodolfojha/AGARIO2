@@ -859,17 +859,18 @@
                  console.error('❌ AuthManager class not found');
              }
          });
-        window.addEventListener('error', function(e) {
-            console.error('🚨 Global error:', e.error);
-            const errorDiv = document.getElementById('errorMessage');
-            if (errorDiv) {
-                errorDiv.textContent = 'Error: ' + (e.message || 'Unknown error');
-                errorDiv.style.display = 'block';
-                setTimeout(() => {
-                    errorDiv.style.display = 'none';
-                }, 5000);
-            }
-        });
+         
+         window.addEventListener('error', function(e) {
+             console.error('🚨 Global error:', e.error);
+             const errorDiv = document.getElementById('errorMessage');
+             if (errorDiv) {
+                 errorDiv.textContent = 'Error: ' + (e.message || 'Unknown error');
+                 errorDiv.style.display = 'block';
+                 setTimeout(() => {
+                     errorDiv.style.display = 'none';
+                 }, 5000);
+             }
+         });
         // Debug functions disponibles en producción también
         window.debugAuth = {
             checkAuth: () => {
