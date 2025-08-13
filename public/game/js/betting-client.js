@@ -143,9 +143,9 @@ class BettingClient {
         console.log('  - feeAmount:', !!feeAmountEl);
         console.log('  - cashOutModal:', !!modalEl);
         
-        if (currentValueEl) currentValueEl.textContent = this.currentValue.toFixed(2);
-        if (cashOutAmountEl) cashOutAmountEl.textContent = netAmount.toFixed(2);
-        if (feeAmountEl) feeAmountEl.textContent = fee.toFixed(2);
+        if (currentValueEl) currentValueEl.textContent = (this.currentValue || 0).toFixed(2);
+        if (cashOutAmountEl) cashOutAmountEl.textContent = (netAmount || 0).toFixed(2);
+        if (feeAmountEl) feeAmountEl.textContent = (fee || 0).toFixed(2);
         if (modalEl) {
             modalEl.style.display = 'block';
             console.log('✅ Modal should be visible now');
@@ -159,9 +159,9 @@ class BettingClient {
         if (valueDisplay && this.currentGame) {
             const roi = ((this.currentValue / this.currentGame.bet_amount - 1) * 100);
             valueDisplay.innerHTML = `
-                <span>Valor: ${this.currentValue.toFixed(2)}</span>
+                <span>Valor: ${(this.currentValue || 0).toFixed(2)}</span>
                 <span class="${roi >= 0 ? 'profit' : 'loss'}">
-                    ROI: ${roi >= 0 ? '+' : ''}${roi.toFixed(1)}%
+                    ROI: ${roi >= 0 ? '+' : ''}${(roi || 0).toFixed(1)}%
                 </span>
             `;
         }

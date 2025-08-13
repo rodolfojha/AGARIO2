@@ -427,23 +427,34 @@
                 
                 // Inicializar bettingClient con los datos de la URL
                 if (gameData && betAmount && userId) {
-                    console.log('🎮 Initializing betting client with game data');
-                    const parsedGameData = JSON.parse(gameData);
-                    
-                    // Asegurar que bettingClient esté disponible
-                    if (typeof window.bettingClient !== 'undefined') {
-                        console.log('✅ BettingClient found, setting game data');
-                        window.bettingClient.currentGame = parsedGameData;
-                        window.bettingClient.currentValue = parsedGameData.current_value || parseFloat(betAmount);
+                    try {
+                        console.log('🎮 Initializing betting client with game data');
+                        const parsedGameData = JSON.parse(gameData);
                         
-                        console.log('🎯 Game initialized with:', {
-                            gameId: parsedGameData.id,
-                            currentValue: window.bettingClient.currentValue,
-                            betAmount: betAmount
-                        });
-                    } else {
-                        console.warn('⚠️ BettingClient not found, will initialize later');
+                        // Asegurar que bettingClient esté disponible
+                        if (typeof window.bettingClient !== 'undefined') {
+                            console.log('✅ BettingClient found, setting game data');
+                            window.bettingClient.currentGame = parsedGameData;
+                            
+                            // Validar y establecer currentValue
+                            const initialValue = parsedGameData.current_value || parseFloat(betAmount) || 0;
+                            window.bettingClient.currentValue = isFinite(initialValue) ? initialValue : 0;
+                            
+                            console.log('🎯 Game initialized with:', {
+                                gameId: parsedGameData.id,
+                                currentValue: window.bettingClient.currentValue,
+                                betAmount: betAmount,
+                                parsedBetAmount: parseFloat(betAmount)
+                            });
+                        } else {
+                            console.warn('⚠️ BettingClient not found, will initialize later');
+                        }
+                    } catch (error) {
+                        console.error('❌ Error parsing game data:', error);
+                        console.log('Raw gameData:', gameData);
                     }
+                } else {
+                    console.warn('⚠️ Missing required parameters:', { gameData: !!gameData, betAmount, userId });
                 }
                 
                 // Inicializar el juego con los parámetros recibidos
