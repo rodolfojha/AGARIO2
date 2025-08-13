@@ -809,10 +809,42 @@
               }
               
               // Setup Add Funds button (NOWPayments)
-              // Note: This is handled by app-betting.js, but we add debugging here
               const addBalanceBtn = document.getElementById('addBalanceBtn');
               if (addBalanceBtn) {
-                  console.log('✅ Add Funds button found, functionality handled by app-betting.js');
+                  console.log('✅ Add Funds button found in index.html');
+                  
+                  // Verificar si ya tiene event listeners de app-betting.js
+                  const existingListeners = addBalanceBtn.onclick;
+                  console.log('🔍 Existing onclick handler:', existingListeners);
+                  
+                  // Agregar nuestro propio event listener como backup
+                  addBalanceBtn.addEventListener('click', async () => {
+                      console.log('💳 Add Funds button clicked (index.html handler)');
+                      
+                      // Verificar si el modal existe
+                      const topUpModal = document.getElementById('topUpModal');
+                      if (topUpModal) {
+                          console.log('✅ Top-up modal found, opening...');
+                          topUpModal.style.display = 'block';
+                          
+                          // Cargar currencies y setup handlers
+                          if (typeof loadAvailableCurrencies === 'function') {
+                              console.log('🔄 Loading available currencies...');
+                              await loadAvailableCurrencies();
+                          } else {
+                              console.log('⚠️ loadAvailableCurrencies function not found');
+                          }
+                          
+                          if (typeof setupTopUpModalHandlers === 'function') {
+                              console.log('🔄 Setting up modal handlers...');
+                              setupTopUpModalHandlers();
+                          } else {
+                              console.log('⚠️ setupTopUpModalHandlers function not found');
+                          }
+                      } else {
+                          console.error('❌ Top-up modal not found');
+                      }
+                  });
               } else {
                   console.error('❌ Add Funds button not found');
               }

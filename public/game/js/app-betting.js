@@ -167,16 +167,33 @@ document.body.appendChild(refreshBtn);
 
     // === BALANCE EVENTS ===
     const addBalanceBtn = document.getElementById('addBalanceBtn');
+    console.log('🔍 Checking for addBalanceBtn in app-betting.js:', !!addBalanceBtn);
     if (addBalanceBtn) {
+        console.log('✅ Setting up addBalanceBtn onclick handler in app-betting.js');
         addBalanceBtn.onclick = async () => {
+            console.log('💳 Add Funds button clicked (app-betting.js handler)');
+            
             // Abrir modal de NOWPayments
             const modal = document.getElementById('topUpModal');
+            console.log('🔍 Top-up modal found:', !!modal);
+            
             if (modal) {
+                console.log('✅ Opening top-up modal...');
                 modal.style.display = 'block';
+                
+                console.log('🔄 Loading available currencies...');
                 await loadAvailableCurrencies();
+                
+                console.log('🔄 Setting up modal handlers...');
                 setupTopUpModalHandlers();
+                
+                console.log('✅ Modal setup complete');
+            } else {
+                console.error('❌ Top-up modal not found in DOM');
             }
         };
+    } else {
+        console.log('❌ addBalanceBtn not found in app-betting.js');
     }
 
     // === BET CONTROLS ===
