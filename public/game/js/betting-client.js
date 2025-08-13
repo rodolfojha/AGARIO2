@@ -2,7 +2,7 @@
 function getApiBaseUrl() {
     return window.location.hostname === 'localhost' ? 
         'http://localhost:3000' : 
-        'http://128.254.207.105:3000';
+        'https://back.pruebatupanel.com';
 }
 
 class BettingClient {
@@ -125,13 +125,32 @@ class BettingClient {
     }
 
     showCashOutModal() {
+        console.log('🔍 showCashOutModal called');
+        console.log('🔍 currentValue:', this.currentValue);
+        
         const fee = this.currentValue * 0.1;
         const netAmount = this.currentValue * 0.9;
         
-        document.getElementById('currentValue').textContent = this.currentValue.toFixed(2);
-        document.getElementById('cashOutAmount').textContent = netAmount.toFixed(2);
-        document.getElementById('feeAmount').textContent = fee.toFixed(2);
-        document.getElementById('cashOutModal').style.display = 'block';
+        const currentValueEl = document.getElementById('currentValue');
+        const cashOutAmountEl = document.getElementById('cashOutAmount');
+        const feeAmountEl = document.getElementById('feeAmount');
+        const modalEl = document.getElementById('cashOutModal');
+        
+        console.log('🔍 DOM elements found:');
+        console.log('  - currentValue:', !!currentValueEl);
+        console.log('  - cashOutAmount:', !!cashOutAmountEl);
+        console.log('  - feeAmount:', !!feeAmountEl);
+        console.log('  - cashOutModal:', !!modalEl);
+        
+        if (currentValueEl) currentValueEl.textContent = this.currentValue.toFixed(2);
+        if (cashOutAmountEl) cashOutAmountEl.textContent = netAmount.toFixed(2);
+        if (feeAmountEl) feeAmountEl.textContent = fee.toFixed(2);
+        if (modalEl) {
+            modalEl.style.display = 'block';
+            console.log('✅ Modal should be visible now');
+        } else {
+            console.error('❌ Modal element not found!');
+        }
     }
 
     updateValueDisplay() {

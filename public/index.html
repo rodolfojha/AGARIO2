@@ -1,499 +1,638 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>AGARIO - </title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DAMNBRUH - Skill-Based Betting</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐻</text></svg>">
     
     <!-- Google Sign-In SDK -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     
-    <!-- CSS con estilo DamnBruh -->
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        html, body {
-            background: #0a0a0a;
+        body {
+            background: 
+                linear-gradient(135deg, rgba(15, 15, 15, 0.85) 0%, rgba(26, 26, 46, 0.8) 50%, rgba(22, 33, 62, 0.85) 100%);
+            font-family: 'Arial', sans-serif;
             color: white;
-            overflow: hidden;
-            height: 100vh;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
         }
 
-        /* Fondo con cuadrícula sutil */
-        body::before {
-            content: '';
+        /* Cracked Lava Background */
+        .lava-background {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: 
-                linear-gradient(rgba(20, 20, 20, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(20, 20, 20, 0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
-            z-index: -1;
+            z-index: -2;
+            opacity: 0.4;
         }
 
-        /* === TOP BAR === */
-        .top-bar {
+        .crack-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, #2c2c2c 0%, #1a1a1a 50%, transparent 70%),
+                radial-gradient(circle at 80% 20%, #3a3a3a 0%, #1a1a1a 50%, transparent 70%),
+                radial-gradient(circle at 40% 40%, #2a2a2a 0%, transparent 50%),
+                linear-gradient(45deg, #1a1a1a 0%, #2c2c2c 50%, #1a1a1a 100%);
+        }
+
+        .crack-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(45deg, transparent 40%, rgba(255, 69, 0, 0.8) 41%, rgba(255, 69, 0, 0.8) 43%, transparent 44%),
+                linear-gradient(-45deg, transparent 40%, rgba(255, 100, 0, 0.6) 41%, rgba(255, 100, 0, 0.6) 43%, transparent 44%),
+                linear-gradient(90deg, transparent 45%, rgba(255, 140, 0, 0.7) 46%, rgba(255, 140, 0, 0.7) 48%, transparent 49%),
+                radial-gradient(circle at 30% 70%, rgba(255, 69, 0, 0.5) 0%, transparent 20%),
+                radial-gradient(circle at 70% 30%, rgba(255, 100, 0, 0.4) 0%, transparent 25%);
+            background-size: 150px 150px, 200px 200px, 180px 180px, 300px 300px, 250px 250px;
+            animation: lavaGlow 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes lavaGlow {
+            0% { opacity: 0.6; }
+            100% { opacity: 0.9; }
+        }
+
+        /* Agar.io Style Battle Arena */
+        .agar-arena {
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            height: 60px;
-            background: rgba(15, 15, 15, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            z-index: 1000;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
         }
 
-        .top-bar-left {
+        .agar-cell {
+            position: absolute;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 
+                inset -20px -20px 50px rgba(0,0,0,0.5),
+                inset 20px 20px 50px rgba(255,255,255,0.1),
+                0 0 30px rgba(255,255,255,0.2);
+        }
+
+        .cell-1 { background: radial-gradient(circle at 30% 30%, #ff6b6b, #ee5a24); }
+        .cell-2 { background: radial-gradient(circle at 30% 30%, #4ecdc4, #00d2d3); }
+        .cell-3 { background: radial-gradient(circle at 30% 30%, #45b7d1, #3742fa); }
+        .cell-4 { background: radial-gradient(circle at 30% 30%, #96ceb4, #27ae60); }
+        .cell-5 { background: radial-gradient(circle at 30% 30%, #ffeaa7, #fdcb6e); }
+        .cell-6 { background: radial-gradient(circle at 30% 30%, #fd79a8, #e84393); }
+        .cell-7 { background: radial-gradient(circle at 30% 30%, #a29bfe, #6c5ce7); }
+        .cell-8 { background: radial-gradient(circle at 30% 30%, #fd79a8, #fdcb6e); }
+
+        /* Battle animations */
+        @keyframes hunt {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(var(--hunt-x), var(--hunt-y)) scale(1.1); }
+            100% { transform: translate(var(--hunt-x2), var(--hunt-y2)) scale(1); }
+        }
+
+        @keyframes flee {
+            0% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(var(--flee-x), var(--flee-y)) scale(0.9); }
+            50% { transform: translate(var(--flee-x2), var(--flee-y2)) scale(0.8); }
+            75% { transform: translate(var(--flee-x3), var(--flee-y3)) scale(0.9); }
+            100% { transform: translate(var(--flee-x4), var(--flee-y4)) scale(1); }
+        }
+
+        @keyframes consume {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.8; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        @keyframes grow {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.2); }
+        }
+
+        @keyframes split {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+            100% { transform: scale(1) translate(var(--split-x), var(--split-y)); }
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo-section {
             display: flex;
             align-items: center;
             gap: 15px;
         }
 
-        .user-welcome {
+        .logo {
+            width: 40px;
+            height: 40px;
+            background: #ffd700;
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 10px;
-        }
-
-        .user-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 2px solid #FFD700;
+            justify-content: center;
+            font-size: 20px;
         }
 
         .welcome-text {
-            color: #FFD700;
-            font-weight: 600;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .login-btn {
+            background: #ffd700;
+            color: black;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .login-btn:hover {
+            background: #ffed4e;
+            transform: translateY(-2px);
+        }
+
+        /* Estilos para el botón de Google login en el header */
+        .header .google-login-btn {
+            background: #4285F4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex !important;
+            align-items: center;
+            gap: 8px;
             font-size: 14px;
         }
 
-        .top-bar-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+        .header .google-login-btn:hover {
+            background: #357AE8;
+            transform: translateY(-2px);
         }
 
-        .control-btn {
-            background: none;
-            border: none;
-            color: #ccc;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 8px;
-            border-radius: 4px;
-            transition: all 0.2s;
+        /* Forzar visibilidad del botón de Google login cuando sea necesario */
+        .header .google-login-btn[style*="display: block"],
+        .header .google-login-btn[style*="display: flex"] {
+            display: flex !important;
         }
 
-        .control-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #FFD700;
-        }
-
+        /* Estilo para el botón de logout más pequeño */
         .logout-btn {
-            background: #FFD700;
-            color: #000;
+            background: linear-gradient(135deg, #ff4757, #ff3742);
+            color: white;
             border: none;
             padding: 8px 16px;
-            border-radius: 4px;
+            border-radius: 8px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3);
         }
 
         .logout-btn:hover {
-            background: #FFED4E;
-            transform: scale(1.05);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4);
         }
 
-        /* === LOGO CENTRAL === */
-        .logo-section {
-            position: fixed;
-            top: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            text-align: center;
-            z-index: 999;
+        .logout-btn:active {
+            transform: translateY(0);
         }
 
-        .game-logo {
-            font-size: 48px;
-            font-weight: 900;
-            color: #FFD700;
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-            letter-spacing: 2px;
-            margin-bottom: 5px;
-        }
-
-        .game-subtitle {
-            font-size: 14px;
-            color: #ccc;
-            font-weight: 300;
-            letter-spacing: 1px;
-        }
-
-        /* === PANELES PRINCIPALES === */
-        .main-container {
-            position: fixed;
-            top: 160px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: grid;
-            grid-template-columns: 300px 400px 300px;
-            gap: 20px;
-            z-index: 998;
-        }
-
-        .panel {
-            background: rgba(20, 20, 20, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .panel-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #FFD700;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* === PANEL IZQUIERDO - LEADERBOARD === */
-        .leaderboard-panel {
-            height: 400px;
-        }
-
-        .live-indicator {
-            background: #2ECC71;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: 600;
-            margin-left: auto;
-        }
-
-        .leaderboard-error {
-            color: #E74C3C;
-            font-size: 12px;
-            margin: 10px 0;
-        }
-
-        .retry-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: #ccc;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            margin: 10px 0;
-        }
-
-        .view-leaderboard-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            padding: 10px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            width: 100%;
-            margin-top: 15px;
-        }
-
-        /* === PANEL CENTRAL - GAME CONTROLS === */
-        .game-panel {
-            height: 400px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .user-score {
-            background: #FFD700;
-            color: #000;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            font-size: 18px;
-        }
-
-        .username-input {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 6px;
-            padding: 10px;
-            color: white;
-            font-size: 14px;
-            outline: none;
-        }
-
-        .username-input:focus {
-            border-color: #FFD700;
-        }
-
-        .bet-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            margin: 20px 0;
-        }
-
+        /* Asegurar que los botones de apuesta funcionen correctamente */
         .bet-btn {
-            background: #FFD700;
-            color: #000;
+            background: linear-gradient(135deg, #2f3542, #3742fa);
+            color: white;
             border: none;
-            padding: 12px;
-            border-radius: 6px;
-            font-weight: 600;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
+            margin: 0 8px;
+            box-shadow: 0 4px 15px rgba(55, 66, 250, 0.3);
         }
 
         .bet-btn:hover {
-            background: #FFED4E;
-            transform: scale(1.05);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(55, 66, 250, 0.4);
         }
 
-        .join-game-btn {
-            background: #FFD700;
+        .bet-btn.active {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #2f3542;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+        }
+
+        .bet-btn.active:hover {
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .header .dev-login-btn {
+            background: #ffd700;
             color: #000;
             border: none;
-            padding: 15px;
+            padding: 12px 24px;
             border-radius: 8px;
-            font-weight: 700;
-            font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
-            transition: all 0.2s;
-            margin: 20px 0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .header .dev-login-btn:hover {
+            background: #ffed4e;
+            transform: translateY(-2px);
+        }
+
+        /* Main Content */
+        .container {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            gap: 30px;
+            padding: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background: rgba(20, 20, 30, 0.8);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #ffd700;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+
+        .amount {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .live-indicator {
+            background: #00ff88;
+            color: black;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .view-full-btn, .add-friends-btn, .change-appearance-btn {
+            width: 100%;
+            background: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .view-full-btn:hover, .add-friends-btn:hover, .change-appearance-btn:hover {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        /* Center Content */
+        .main-content {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .main-logo {
+            font-size: 4rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #fff, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            color: rgba(255, 255, 255, 0.8);
+            letter-spacing: 2px;
+        }
+
+        .login-prompt {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 15px;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px 25px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .join-game-btn:hover {
-            background: #FFED4E;
-            transform: scale(1.02);
-        }
-
-        .secondary-buttons {
+        .help-icon {
+            background: #ffd700;
+            color: black;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
             display: flex;
-            gap: 10px;
-            margin: 15px 0;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
         }
 
-        .secondary-btn {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            padding: 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.2s;
-        }
-
-        .secondary-btn:hover {
+        .edit-icon {
             background: rgba(255, 255, 255, 0.2);
-        }
-
-        .game-stats {
-            margin-top: auto;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 5px 0;
-            font-size: 12px;
-        }
-
-        .stat-value {
-            color: #FFD700;
-            font-weight: 600;
-        }
-
-        .bottom-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .bottom-btn {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
             padding: 8px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 11px;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
         }
 
-        .bottom-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .edit-icon:hover {
+            background: rgba(255, 215, 0, 0.3);
         }
 
-        /* === PANEL DERECHO SUPERIOR - WALLET === */
-        .wallet-panel {
-            height: 200px;
-        }
-
-        .wallet-header {
+        /* Betting Amount Buttons */
+        .betting-amounts {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
         }
 
-        .wallet-controls {
-            display: flex;
-            gap: 8px;
-        }
-
-        .wallet-control-btn {
-            background: none;
-            border: none;
-            color: #ccc;
-            font-size: 14px;
+        .amount-btn, .bet-btn {
+            background: transparent;
+            border: 2px solid #ffd700;
+            color: #ffd700;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
             cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
+            min-width: 80px;
         }
 
-        .wallet-control-btn:hover {
-            color: #FFD700;
+        .amount-btn.active, .amount-btn:hover,
+        .bet-btn.active, .bet-btn:hover {
+            background: #ffd700;
+            color: black;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 215, 0, 0.4);
         }
 
-        .balance-display {
+        /* Join Game Button */
+        .join-game-btn {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: black;
+            border: none;
+            padding: 20px 60px;
+            border-radius: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+        }
+
+        .join-game-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255, 215, 0, 0.5);
+        }
+
+        /* Region and Browse Buttons */
+        .game-options {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .region-btn, .browse-btn {
+            background: rgba(20, 20, 30, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .region-btn:hover, .browse-btn:hover {
+            border-color: #ffd700;
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        /* Stats */
+        .stats {
+            display: flex;
+            gap: 60px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .stat {
             text-align: center;
-            margin: 20px 0;
         }
 
-        .balance-amount {
-            font-size: 24px;
-            font-weight: 900;
-            color: #FFD700;
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ffd700;
             margin-bottom: 5px;
         }
 
-        .balance-crypto {
-            font-size: 12px;
-            color: #ccc;
+        .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
         }
 
-        .wallet-buttons {
+        /* Right Sidebar - Wallet */
+        .wallet-section {
+            text-align: center;
+        }
+
+        .balance {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+
+        .sol-amount {
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 20px;
+        }
+
+        .wallet-actions {
             display: flex;
+            flex-direction: column;
             gap: 10px;
+            margin-bottom: 30px;
         }
 
         .add-funds-btn {
-            flex: 1;
-            background: #2ECC71;
-            color: white;
+            background: #00ff88;
+            color: black;
             border: none;
-            padding: 10px;
-            border-radius: 6px;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-        }
-
-        .add-funds-btn:hover {
-            background: #27AE60;
+            transition: all 0.3s ease;
         }
 
         .cash-out-btn {
-            flex: 1;
-            background: #9B59B6;
+            background: #4169e1;
             color: white;
             border: none;
-            padding: 10px;
-            border-radius: 6px;
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: bold;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
         }
 
-        .cash-out-btn:hover {
-            background: #8E44AD;
+        .add-funds-btn:hover, .cash-out-btn:hover {
+            transform: translateY(-2px);
         }
 
-        /* === PANEL DERECHO INFERIOR - CUSTOMIZE === */
-        .customize-panel {
-            height: 180px;
-            margin-top: 20px;
-        }
-
-        .character-preview {
-            width: 80px;
-            height: 80px;
-            background: #3498DB;
+        /* Customize Section */
+        .customize-animation-container {
+            width: 100px;
+            height: 100px;
+            margin: 20px auto;
+            position: relative;
+            overflow: hidden;
             border-radius: 50%;
-            margin: 15px auto;
+            border: 4px solid #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+        
+        .flag-cell {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            animation: changeFlag 8s infinite;
+        }
+
+        @keyframes changeFlag {
+            0% { background-image: url('https://flagcdn.com/w160/us.png'); }
+            20% { background-image: url('https://flagcdn.com/w160/ca.png'); }
+            40% { background-image: url('https://flagcdn.com/w160/mx.png'); }
+            60% { background-image: url('https://flagcdn.com/w160/br.png'); }
+            80% { background-image: url('https://flagcdn.com/w160/gb.png'); }
+            100% { background-image: url('https://flagcdn.com/w160/us.png'); }
+        }
+
+        /* Discord Button */
+        .discord-btn {
+            background: #5865f2;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 24px;
+            gap: 8px;
+            margin-top: 20px;
+            transition: all 0.3s ease;
         }
 
-        .change-appearance-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            padding: 10px 16px;
+        .discord-btn:hover {
+            background: #4752c4;
+            transform: translateY(-2px);
+        }
+
+        /* Wallet Address Actions */
+        .wallet-actions-top {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 12px;
+        }
+
+        .wallet-action {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.7);
+            padding: 6px 12px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 12px;
-            width: 100%;
-            transition: all 0.2s;
+            transition: all 0.3s ease;
         }
 
-        .change-appearance-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .wallet-action:hover {
+            border-color: #ffd700;
+            color: #ffd700;
         }
 
-        /* === PANEL IZQUIERDO INFERIOR - FRIENDS === */
-        .friends-panel {
-            height: 180px;
-            margin-top: 20px;
+        /* Friends Section */
+        .friends-section {
+            margin-bottom: 30px;
         }
 
         .friends-header {
@@ -503,56 +642,363 @@
             margin-bottom: 15px;
         }
 
-        .friends-count {
-            font-size: 10px;
-            color: #ccc;
+        .playing-count {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
         }
 
         .no-friends {
             text-align: center;
-            color: #ccc;
-            font-size: 12px;
-            margin: 20px 0;
+            color: rgba(255, 255, 255, 0.5);
+            padding: 30px 0;
         }
 
-        .add-friends-btn {
-            background: rgba(255, 255, 255, 0.1);
+        .refresh-btn {
+            background: transparent;
             border: none;
-            color: white;
-            padding: 10px 16px;
-            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.5);
             cursor: pointer;
-            font-size: 12px;
+            font-size: 14px;
+        }
+
+        .refresh-btn:hover {
+            color: #ffd700;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 250px 1fr 250px;
+                gap: 20px;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 968px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .sidebar {
+                order: 2;
+            }
+            
+            .main-content {
+                order: 1;
+            }
+            
+            .header {
+                padding: 15px 20px;
+            }
+            
+            .betting-amounts {
+                flex-wrap: wrap;
+            }
+            
+            .stats {
+                gap: 30px;
+            }
+        }
+
+        /* Game Area Styles */
+        #gameAreaWrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            transition: all 0.2s;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.3s;
         }
 
-        .add-friends-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
+        canvas {
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
         }
 
-        /* === DISCORD BUTTON === */
-        .discord-btn {
-            position: fixed;
+        /* Game Elements */
+        #cashOutBtn {
+            position: absolute;
+            top: 80px;
+            left: 20px;
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+            z-index: 98;
+            transition: all 0.3s ease;
+            display: none;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        #cashOutBtn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #e67e22, #d35400);
+        }
+
+        #cashOutBtn:active {
+            transform: scale(0.95);
+        }
+
+        #currentValueDisplay {
+            position: absolute;
+            top: 140px;
+            left: 20px;
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            display: none;
+            z-index: 99;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .profit { color: #2ecc71; }
+        .loss { color: #e74c3c; }
+
+        #status {
+            position: absolute;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #FFF;
+            font-size: 16px;
+            top: 20px;
+            right: 20px;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chatbox {
+            position: absolute;
+            width: 300px;
+            height: 320px;
+            background: rgba(22, 22, 22, 0.9);
             bottom: 20px;
             left: 20px;
-            background: #9B59B6;
-            color: white;
-            border: none;
-            padding: 12px 20px;
             border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-            z-index: 997;
+            pointer-events: none;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        .discord-btn:hover {
-            background: #8E44AD;
-            transform: scale(1.05);
+        .chat-list {
+            padding: 10px;
+            margin: 0;
+            list-style: none;
+            height: 285px;
+            overflow: hidden;
+        }
+
+        .chat-input {
+            pointer-events: all;
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            outline: none;
+            color: white;
+        }
+
+        /* Modals */
+        #cashOutModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            display: none;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(20, 20, 20, 0.95);
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+            min-width: 300px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: #FFD700;
+        }
+
+        .modal-content button {
+            margin: 10px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        #confirmCashOut {
+            background: #2ecc71;
+            color: white;
+        }
+
+        #cancelCashOut {
+            background: #95a5a6;
+            color: white;
+        }
+
+        #errorMessage {
+            background: #e74c3c;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+            display: none;
+        }
+
+        #cashOutResult {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2ecc71;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1001;
+            display: none;
+            text-align: center;
+        }
+
+        /* Top Up Modal */
+        #topUpModal {
+            display:none; 
+            position:fixed; 
+            inset:0; 
+            background:rgba(0,0,0,0.85); 
+            z-index:2000;
+        }
+
+        /* Login Section */
+        #loginSection {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a0a;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .login-container {
+            background: rgba(20, 20, 20, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 16px 64px rgba(0, 0, 0, 0.5);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .login-logo {
+            font-size: 36px;
+            font-weight: 900;
+            color: #FFD700;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .login-subtitle {
+            color: #ccc;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .dev-login-btn {
+            background: #FFD700;
+            color: #000;
+        }
+
+        .dev-login-btn:hover {
+            background: #FFED4E;
+            transform: scale(1.02);
+        }
+
+        .google-login-btn {
+            background: #4285F4;
+            color: white;
+        }
+
+        .google-login-btn:hover {
+            background: #357AE8;
+            transform: scale(1.02);
+        }
+
+        .login-features {
+            margin-top: 30px;
+            text-align: left;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .login-features p {
+            margin: 8px 0;
+            padding-left: 15px;
+            position: relative;
+        }
+
+        .login-features p::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: #FFD700;
+        }
+
+        /* Game Section */
+        #gameSection {
+            display: block;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1001;
         }
 
         /* === SECCIÓN DE LOGIN === */
@@ -563,7 +1009,7 @@
             width: 100%;
             height: 100%;
             background: #0a0a0a;
-            display: flex;
+            display: none; /* Cambiado de flex a none para que no sea la página principal */
             align-items: center;
             justify-content: center;
             z-index: 2000;
@@ -653,7 +1099,7 @@
 
         /* === SECCIÓN DEL JUEGO === */
         #gameSection {
-            display: none;
+            display: block; /* Cambiado de none a block para que sea la página principal */
             position: fixed;
             top: 0;
             left: 0;
@@ -846,45 +1292,173 @@
             text-align: center;
         }
 
-        /* === RESPONSIVE === */
-        @media only screen and (max-width: 1200px) {
-            .main-container {
-                grid-template-columns: 250px 350px 250px;
-                gap: 15px;
-            }
+        /* Username Input */
+        .username-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 10px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+            margin: 0 10px;
+            width: 200px;
+            display: inline-block;
+            pointer-events: auto;
+            z-index: 1000;
         }
 
-        @media only screen and (max-width: 768px) {
-            .main-container {
-                grid-template-columns: 1fr;
-                gap: 15px;
-                top: 120px;
-                left: 20px;
-                right: 20px;
-                transform: none;
-            }
+        .username-input:focus {
+            border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
 
-            .panel {
-                height: auto;
-                min-height: 200px;
-            }
+        .username-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
 
-            .top-bar {
-                padding: 0 15px;
-            }
+        /* Mobile Controls */
+        #mobile {
+            display: none;
+        }
 
-            .game-logo {
-                font-size: 32px;
-            }
+        #mobile button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+        }
+
+        /* Controls Indicator */
+        #controlsIndicator {
+            display: none;
+        }
+
+        /* Top Up Modal Styles */
+        #topUpModal > div {
+            position:absolute; 
+            left:50%; 
+            top:50%; 
+            transform:translate(-50%,-50%); 
+            background:#1b2430; 
+            color:#fff; 
+            padding:24px; 
+            border-radius:12px; 
+            width: 420px; 
+            max-width: 95vw;
+        }
+        #topUpModal h3 { 
+            margin:0 0 12px; 
+            color:#FFD700; 
+        }
+        #topUpModal > div > div:nth-child(2) { 
+            font-size:13px; 
+            color:#aaa; 
+            margin-bottom:12px; 
+        }
+        #topUpModal > div > div:nth-child(3) { 
+            display:flex; 
+            gap:8px; 
+            margin-bottom:12px; 
+        }
+        #topUpModal input, #topUpModal select { 
+            flex:1; 
+            padding:10px; 
+            border-radius:8px; 
+            border:1px solid rgba(255,255,255,0.15); 
+            background:#243143; 
+            color:#fff; 
+        }
+        #topUpModal select { 
+            width:140px; 
+        }
+        #topUpError { 
+            display:none; 
+            background:#e74c3c; 
+            padding:8px 10px; 
+            border-radius:6px; 
+            font-size:12px; 
+            margin-bottom:10px; 
+        }
+        #topUpStepCreate { 
+            display:block; 
+        }
+        #topUpCreateBtn { 
+            width:100%; 
+            padding:12px; 
+            border:none; 
+            background:#2ECC71; 
+            color:#fff; 
+            border-radius:10px; 
+            font-weight:700; 
+            cursor:pointer; 
+        }
+        #topUpStepPay { 
+            display:none; 
+        }
+        #topUpStepPay > div:nth-child(1) { 
+            margin:10px 0; 
+            font-size:13px; 
+            color:#ddd; 
+        }
+        #topUpStepPay > div:nth-child(2) { 
+            word-break:break-all; 
+            background:#0f1722; 
+            padding:10px; 
+            border-radius:8px; 
+            border:1px solid rgba(255,255,255,0.1); 
+            font-family:monospace; 
+        }
+        #topUpStepPay > div:nth-child(3) { 
+            display:flex; 
+            justify-content:center; 
+            margin:12px 0; 
+        }
+        #topUpQr { 
+            border-radius:8px; 
+            border:1px solid rgba(255,255,255,0.1); 
+        }
+        #topUpStepPay > div:nth-child(4) { 
+            font-size:12px; 
+            color:#aaa; 
+        }
+        #topUpCheckBtn { 
+            margin-top:12px; 
+            width:100%; 
+            padding:10px; 
+            border:none; 
+            background:#3498db; 
+            color:#fff; 
+            border-radius:10px; 
+            font-weight:700; 
+            cursor:pointer; 
+        }
+        #topUpClose { 
+            margin-top:10px; 
+            width:100%; 
+            padding:8px; 
+            background:#95a5a6; 
+            border:none; 
+            color:#fff; 
+            border-radius:8px; 
+            cursor:pointer; 
         }
     </style>
 </head>
 <body>
+    <div class="lava-background">
+        <div class="crack-layer"></div>
+        <div class="crack-overlay"></div>
+    </div>
+
+    <div class="agar-arena" id="agarArena"></div>
+
     <!-- === SECCIÓN DE LOGIN === -->
     <div id="loginSection">
         <div class="login-container">
-            <div class="login-logo">AGARIO</div>
-            <div class="login-subtitle"></div>
+            <div class="login-logo">DAMNBRUH</div>
+            <div class="login-subtitle">Skill-Based Betting</div>
             
             <button id="devLoginBtn" class="login-btn dev-login-btn">
                 🚀 Login (Dev Mode)
@@ -911,136 +1485,136 @@
     <!-- === SECCIÓN PRINCIPAL DEL JUEGO === -->
     <div id="gameSection">
         
-        <!-- === TOP BAR === -->
-        <div class="top-bar">
-            <div class="top-bar-left">
-                <div class="user-welcome">
-                    <img id="userAvatar" src="" class="user-avatar" style="display: none;" alt="User Avatar">
-                    <span class="welcome-text">Welcome, <span id="userName">Usuario</span>!</span>
-                </div>
+        <!-- === HEADER === -->
+        <header class="header">
+            <div class="logo-section">
+                <div class="logo">🐻</div>
+                <span class="welcome-text">Welcome, <span id="userName">bruh!</span></span>
             </div>
-            
-            <div class="top-bar-right">
-                <button class="control-btn" title="Volume">🔊</button>
-                <button class="control-btn" title="Settings">⚙️</button>
-                <button id="logoutBtn" class="logout-btn">Logout</button>
-            </div>
-        </div>
+            <button id="logoutBtn" class="logout-btn" style="display: none;">Logout</button>
+            <button id="devLoginBtn" class="dev-login-btn" style="display: none;">
+                🚀 Dev Login
+            </button>
+            <button id="topBarGoogleLoginBtn" class="google-login-btn" style="display: none;">
+                <svg width="18" height="18" viewBox="0 0 24 24">
+                    <path fill="white" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="white" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="white" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="white" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Sign in with Google
+            </button>
+        </header>
 
-        <!-- === LOGO CENTRAL === -->
-        <div class="logo-section">
-            <div class="game-logo">AGARIO</div>
-            <div class="game-subtitle"></div>
-        </div>
-
-        <!-- === PANELES PRINCIPALES === -->
-        <div class="main-container">
+        <!-- === MAIN CONTAINER === -->
+        <div class="container">
             
-            <!-- === PANEL IZQUIERDO === -->
-            <div class="panel leaderboard-panel">
-                <div class="panel-title">
+            <!-- === SIDEBAR IZQUIERDO === -->
+            <div class="sidebar">
+                <div class="sidebar-title">
                     🏆 Leaderboard
-                    <span class="live-indicator">Live</span>
+                    <div class="live-indicator">Live</div>
                 </div>
-                <div class="leaderboard-error">Failed to fetch</div>
-                <button class="retry-btn">🔄 Retry</button>
-                <button class="view-leaderboard-btn">View Full Leaderboard</button>
-            </div>
-
-            <!-- === PANEL CENTRAL === -->
-            <div class="panel game-panel">
-                <div class="user-info">
-                    <div class="user-score">0</div>
-                    <input type="text" id="playerNameInput" class="username-input" placeholder="Tu nombre en el juego" maxlength="25" autofocus />
-                    <button class="control-btn" title="Edit">✏️</button>
+                <div class="leaderboard-item">
+                    <span>1. aj</span>
+                    <span class="amount">$1,624.38</span>
                 </div>
-
-                <div class="bet-buttons">
-                    <button class="bet-btn" data-bet="1">$1</button>
-                    <button class="bet-btn" data-bet="5">$5</button>
-                    <button class="bet-btn" data-bet="20">$20</button>
+                <div class="leaderboard-item">
+                    <span>2. gm_flatgrass</span>
+                    <span class="amount">$1,406.37</span>
                 </div>
-
-                <button id="startButton" class="join-game-btn">
-                    ▷ JOIN GAME
-                </button>
-
-                <div class="secondary-buttons">
-                    <button class="secondary-btn">Ⓤ US</button>
-                    <button class="secondary-btn">☰ Browse Lobbies</button>
+                <div class="leaderboard-item">
+                    <span>3. fdollar</span>
+                    <span class="amount">$1,242.49</span>
                 </div>
+                <button class="view-full-btn">View Full Leaderboard</button>
 
-                <div class="game-stats">
-                    <div class="stat-item">
-                        <span>39 Players In Game</span>
+                <div class="friends-section" style="margin-top: 40px;">
+                    <div class="sidebar-title">
+                        👥 Friends
+                        <button class="refresh-btn">🔄 Refresh</button>
                     </div>
-                    <div class="stat-item">
-                        <span>$83,801 Global Player Winnings</span>
-                        <span class="stat-value">$83,801</span>
-                    </div>
-                </div>
-
-                <div class="bottom-buttons">
-                    <button class="bottom-btn">📦 Daily Crate</button>
-                    <button class="bottom-btn">👥 Affiliate</button>
-                </div>
-            </div>
-
-            <!-- === PANEL DERECHO === -->
-            <div>
-                <!-- === WALLET PANEL === -->
-                <div class="panel wallet-panel">
-                    <div class="panel-title">▧ Wallet</div>
-                    <div class="wallet-header">
-                        <div class="wallet-controls">
-                            <button class="wallet-control-btn" title="Copy Address">📋</button>
-                            <button class="wallet-control-btn" title="Refresh Balance">🔄</button>
-                        </div>
-                    </div>
-                    
-                    <div class="balance-display">
-                        <div class="balance-amount">$<span id="availableBalance">0.00</span></div>
-                        <div class="balance-crypto">0.0000 SOL</div>
-                    </div>
-
-                <div class="wallet-buttons">
-                        <button id="addBalanceBtn" class="add-funds-btn">Add Funds</button>
-                        <button class="cash-out-btn">Cash Out</button>
-                    </div>
-                </div>
-
-                <!-- === CUSTOMIZE PANEL === -->
-                <div class="panel customize-panel">
-                    <div class="panel-title">👕 Customize</div>
-                    <div class="character-preview">🐛</div>
-                    <button class="change-appearance-btn">Change Appearance</button>
-                </div>
-            </div>
-
-            <!-- === PANEL IZQUIERDO INFERIOR === -->
-            <div>
-                <div class="panel friends-panel">
-                    <div class="panel-title">👥 Friends</div>
                     <div class="friends-header">
-                        <button class="wallet-control-btn" title="Refresh">🔄</button>
-                        <span class="friends-count">0 playing</span>
+                        <span class="playing-count">0 playing</span>
                     </div>
                     <div class="no-friends">
-                        <div style="font-size: 48px; margin: 20px 0;">👤</div>
-                        <div>No friends... add some!</div>
+                        👤<br>
+                        No friends... add some!
                     </div>
                     <button class="add-friends-btn">Add Friends</button>
                 </div>
+
+                <button class="discord-btn">
+                    💬 Join Discord!
+                </button>
             </div>
+
+            <!-- === CONTENIDO PRINCIPAL === -->
+            <main class="main-content">
+                <h1 class="main-logo">DAMN<span style="color: #ffd700;">BRUH</span></h1>
+                <p class="tagline">SKILL-BASED BETTING</p>
+
+                        <div class="login-prompt">
+            <div class="help-icon">?</div>
+            <span>Set your name</span>
+            <input type="text" id="playerNameInput" class="username-input" placeholder="Tu nombre en el juego" maxlength="25" autofocus />
+            <div class="edit-icon">✏️</div>
         </div>
 
-        <!-- === DISCORD BUTTON === -->
-        <button class="discord-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.956-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419c0-1.333.955-2.419 2.157-2.419c1.21 0 2.176 1.096 2.157 2.42c0 1.333-.946 2.418-2.157 2.418z"/>
-            </svg>
-            Join Discord!
-        </button>
+        <div class="betting-amounts">
+            <button class="bet-btn active" data-bet="1">$1</button>
+            <button class="bet-btn" data-bet="5">$5</button>
+            <button class="bet-btn" data-bet="20">$20</button>
+        </div>
+
+        <button id="startButton" class="join-game-btn">▶ JOIN GAME</button>
+
+                <div class="game-options">
+                    <button class="region-btn">🌎 US</button>
+                    <button class="browse-btn">📋 Browse Lobbies</button>
+                </div>
+
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-number">1</div>
+                        <div class="stat-label">Players In Game</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number">$121,613</div>
+                        <div class="stat-label">Global Player Winnings</div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- === SIDEBAR DERECHO === -->
+            <div class="sidebar">
+                <div class="sidebar-title">
+                    💳 Wallet
+                </div>
+                <div class="wallet-actions-top">
+                    <button class="wallet-action">📋 Copy Address</button>
+                    <button class="wallet-action">🔄 Refresh Balance</button>
+                </div>
+                
+                <div class="balance">$<span id="availableBalance">0.00</span></div>
+                <div class="sol-amount">0.0000 SOL</div>
+
+                <div class="wallet-actions">
+                    <button id="addBalanceBtn" class="add-funds-btn">Add Funds</button>
+                    <button class="cash-out-btn">Cash Out</button>
+                </div>
+
+                <div style="margin-top: 40px;">
+                    <div class="sidebar-title">
+                        🎨 Personalizar
+                    </div>
+                    <div class="customize-animation-container">
+                        <div class="flag-cell"></div>
+                    </div>
+                    <button class="change-appearance-btn">Change Appearance</button>
+                </div>
+            </div>
+        </div>
 
         <!-- === ÁREA DE JUEGO === -->
         <div id="gameAreaWrapper">
@@ -1162,14 +1736,315 @@
     <!-- 4. App principal AL FINAL -->
     <script src="game/js/app-betting.js"></script>
 
+    <script>
+        // Interactive elements
+        document.querySelectorAll('.amount-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Los event listeners se manejan en app-betting.js para evitar conflictos
+
+        // Agar.io Battle System
+        class AgarCell {
+            constructor(id, x, y, size, cellClass) {
+                this.id = id;
+                this.x = x;
+                this.y = y;
+                this.size = size;
+                this.cellClass = cellClass;
+                this.element = null;
+                this.targetX = x;
+                this.targetY = y;
+                this.isHunting = false;
+                this.target = null;
+                this.speed = Math.random() * 2 + 1;
+                this.direction = Math.random() * Math.PI * 2;
+                this.createElement();
+            }
+
+            createElement() {
+                this.element = document.createElement('div');
+                this.element.className = `agar-cell ${this.cellClass}`;
+                this.element.style.width = this.size + 'px';
+                this.element.style.height = this.size + 'px';
+                this.element.style.left = this.x + 'px';
+                this.element.style.top = this.y + 'px';
+                document.getElementById('agarArena').appendChild(this.element);
+            }
+
+            update(cells) {
+                // Find nearest target
+                let nearestDistance = Infinity;
+                let nearestCell = null;
+                
+                cells.forEach(cell => {
+                    if (cell.id !== this.id) {
+                        const distance = Math.sqrt(
+                            Math.pow(cell.x - this.x, 2) + Math.pow(cell.y - this.y, 2)
+                        );
+                        
+                        if (distance < nearestDistance) {
+                            nearestDistance = distance;
+                            nearestCell = cell;
+                        }
+                    }
+                });
+
+                if (nearestCell) {
+                    // Hunting behavior: bigger cells hunt smaller ones
+                    if (this.size > nearestCell.size * 1.2 && nearestDistance < 200) {
+                        this.huntTarget(nearestCell);
+                    }
+                    // Fleeing behavior: smaller cells flee from bigger ones
+                    else if (this.size < nearestCell.size * 0.8 && nearestDistance < 150) {
+                        this.fleeFrom(nearestCell);
+                    }
+                    // Random movement
+                    else {
+                        this.randomMovement();
+                    }
+                }
+
+                // Update position
+                this.move();
+                
+                // Check for consumption
+                if (nearestCell && nearestDistance < (this.size + nearestCell.size) / 4) {
+                    if (this.size > nearestCell.size * 1.2) {
+                        this.consume(nearestCell);
+                        return nearestCell.id; // Return consumed cell ID
+                    }
+                }
+                
+                return null;
+            }
+
+            huntTarget(target) {
+                const angle = Math.atan2(target.y - this.y, target.x - this.x);
+                this.targetX = this.x + Math.cos(angle) * this.speed * 2;
+                this.targetY = this.y + Math.sin(angle) * this.speed * 2;
+                
+                // Add hunting animation
+                this.element.style.setProperty('--hunt-x', (target.x - this.x) * 0.5 + 'px');
+                this.element.style.setProperty('--hunt-y', (target.y - this.y) * 0.5 + 'px');
+                this.element.style.setProperty('--hunt-x2', (target.x - this.x) * 0.8 + 'px');
+                this.element.style.setProperty('--hunt-y2', (target.y - this.y) * 0.8 + 'px');
+                this.element.style.animation = 'hunt 2s ease-in-out';
+            }
+
+            fleeFrom(threat) {
+                const angle = Math.atan2(this.y - threat.y, this.x - threat.x);
+                this.targetX = this.x + Math.cos(angle) * this.speed * 3;
+                this.targetY = this.y + Math.sin(angle) * this.speed * 3;
+                
+                // Add fleeing animation
+                const fleeDistance = 100;
+                this.element.style.setProperty('--flee-x', Math.cos(angle) * fleeDistance * 0.3 + 'px');
+                this.element.style.setProperty('--flee-y', Math.sin(angle) * fleeDistance * 0.3 + 'px');
+                this.element.style.setProperty('--flee-x2', Math.cos(angle) * fleeDistance * 0.6 + 'px');
+                this.element.style.setProperty('--flee-y2', Math.sin(angle) * fleeDistance * 0.6 + 'px');
+                this.element.style.setProperty('--flee-x3', Math.cos(angle) * fleeDistance * 0.8 + 'px');
+                this.element.style.setProperty('--flee-y3', Math.sin(angle) * fleeDistance * 0.8 + 'px');
+                this.element.style.setProperty('--flee-x4', Math.cos(angle) * fleeDistance + 'px');
+                this.element.style.setProperty('--flee-y4', Math.sin(angle) * fleeDistance + 'px');
+                this.element.style.animation = 'flee 1.5s ease-out';
+            }
+
+            randomMovement() {
+                if (Math.random() < 0.02) { // Change direction occasionally
+                    this.direction = Math.random() * Math.PI * 2;
+                }
+                
+                this.targetX = this.x + Math.cos(this.direction) * this.speed;
+                this.targetY = this.y + Math.sin(this.direction) * this.speed;
+            }
+
+            move() {
+                // Smooth movement towards target
+                this.x += (this.targetX - this.x) * 0.1;
+                this.y += (this.targetY - this.y) * 0.1;
+                
+                // Boundary checking
+                const maxX = window.innerWidth - this.size;
+                const maxY = window.innerHeight - this.size;
+                
+                if (this.x < 0 || this.x > maxX) {
+                    this.direction = Math.PI - this.direction;
+                    this.x = Math.max(0, Math.min(maxX, this.x));
+                }
+                
+                if (this.y < 0 || this.y > maxY) {
+                    this.direction = -this.direction;
+                    this.y = Math.max(0, Math.min(maxY, this.y));
+                }
+                
+                // Update element position
+                this.element.style.left = this.x + 'px';
+                this.element.style.top = this.y + 'px';
+            }
+
+            consume(target) {
+                // Grow the hunter
+                this.size += target.size * 0.3;
+                this.element.style.width = this.size + 'px';
+                this.element.style.height = this.size + 'px';
+                this.element.style.animation = 'grow 0.5s ease-out';
+                
+                // Animate the consumed cell
+                target.element.style.animation = 'consume 0.8s ease-in';
+                
+                // Remove consumed cell after animation
+                setTimeout(() => {
+                    if (target.element && target.element.parentNode) {
+                        target.element.parentNode.removeChild(target.element);
+                    }
+                }, 800);
+            }
+
+            split() {
+                if (this.size > 80) {
+                    const newSize = this.size * 0.7;
+                    this.size = newSize;
+                    this.element.style.width = newSize + 'px';
+                    this.element.style.height = newSize + 'px';
+                    
+                    // Create new cell from split
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = newSize * 2;
+                    const newX = this.x + Math.cos(angle) * distance;
+                    const newY = this.y + Math.sin(angle) * distance;
+                    
+                    this.element.style.setProperty('--split-x', Math.cos(angle) * distance + 'px');
+                    this.element.style.setProperty('--split-y', Math.sin(angle) * distance + 'px');
+                    this.element.style.animation = 'split 1s ease-out';
+                    
+                    return new AgarCell(
+                        Date.now() + Math.random(),
+                        newX,
+                        newY,
+                        newSize,
+                        this.cellClass
+                    );
+                }
+                return null;
+            }
+
+            destroy() {
+                if (this.element && this.element.parentNode) {
+                    this.element.parentNode.removeChild(this.element);
+                }
+            }
+        }
+
+        // Battle Arena Manager
+        class BattleArena {
+            constructor() {
+                this.cells = [];
+                this.cellIdCounter = 0;
+                this.init();
+                this.startBattle();
+            }
+
+            init() {
+                // Create initial cells
+                for (let i = 0; i < 12; i++) {
+                    this.spawnRandomCell();
+                }
+            }
+
+            spawnRandomCell() {
+                const cellClass = `cell-${Math.floor(Math.random() * 8) + 1}`;
+                const size = 40 + Math.random() * 80;
+                const x = Math.random() * (window.innerWidth - size);
+                const y = Math.random() * (window.innerHeight - size);
+                
+                const cell = new AgarCell(this.cellIdCounter++, x, y, size, cellClass);
+                this.cells.push(cell);
+            }
+
+            startBattle() {
+                const battleLoop = () => {
+                    // Update all cells
+                    const consumedIds = [];
+                    
+                    this.cells.forEach(cell => {
+                        const consumedId = cell.update(this.cells);
+                        if (consumedId !== null) {
+                            consumedIds.push(consumedId);
+                        }
+                    });
+                    
+                    // Remove consumed cells
+                    this.cells = this.cells.filter(cell => !consumedIds.includes(cell.id));
+                    
+                    // Randomly spawn new cells
+                    if (Math.random() < 0.005 && this.cells.length < 15) {
+                        this.spawnRandomCell();
+                    }
+                    
+                    // Randomly trigger splits
+                    if (Math.random() < 0.001) {
+                        const largeCells = this.cells.filter(cell => cell.size > 80);
+                        if (largeCells.length > 0) {
+                            const cellToSplit = largeCells[Math.floor(Math.random() * largeCells.length)];
+                            const newCell = cellToSplit.split();
+                            if (newCell) {
+                                this.cells.push(newCell);
+                            }
+                        }
+                    }
+                    
+                    // Maintain minimum cell count
+                    if (this.cells.length < 8) {
+                        this.spawnRandomCell();
+                    }
+                    
+                    requestAnimationFrame(battleLoop);
+                };
+                
+                battleLoop();
+            }
+        }
+
+        // Initialize Battle Arena
+        let battleArena;
+        
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                battleArena = new BattleArena();
+            });
+        } else {
+            battleArena = new BattleArena();
+        }
+
+        // Simulate live leaderboard updates
+        setInterval(() => {
+            const amounts = document.querySelectorAll('.leaderboard-item .amount');
+            amounts.forEach(amount => {
+                const currentValue = parseFloat(amount.textContent.replace('$', '').replace(',', ''));
+                const change = (Math.random() - 0.5) * 10;
+                const newValue = Math.max(0, currentValue + change);
+                amount.textContent = `$${newValue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            });
+        }, 5000);
+    </script>
+
     <!-- 5. Google Sign-In Integration -->
     <script>
         // Configuración global de Google Sign-In
         window.onGoogleLibraryLoad = function() {
             console.log('🔐 Google Sign-In SDK loaded');
             
-            // Obtener Client ID del servidor
-            fetch('/api/config/google')
+            // Obtener Client ID del servidor (usar API externa en producción)
+            const apiBase = window.location.hostname === 'localhost'
+                ? 'http://localhost:3000'
+                : 'https://back.pruebatupanel.com';
+
+            fetch(apiBase + '/api/config/google')
                 .then(response => response.json())
                 .then(config => {
                     if (config.clientId) {
@@ -1186,40 +2061,78 @@
         function initializeGoogleSignIn(clientId) {
             console.log('🔧 Initializing Google Sign-In with client ID:', clientId.substring(0, 20) + '...');
             
-            // Para desarrollo, usar botón simple en lugar de Google OAuth real
-            const googleBtn = document.getElementById('googleLoginBtn');
-            if (googleBtn) {
-                googleBtn.onclick = async function() {
-                    console.log('🔗 Google Sign-In button clicked (DEV MODE)');
-                    
-                    // Simular login de Google para desarrollo
-                    if (typeof authManager !== 'undefined') {
-                        const success = await authManager.devLogin();
-                        if (success) {
-                            console.log('✅ Dev login successful');
-                        } else {
-                            console.error('❌ Dev login failed');
-                        }
-                    } else {
-                        console.error('❌ AuthManager not loaded');
-                    }
-                };
-                
-                // Cambiar el texto del botón para indicar modo desarrollo
-                googleBtn.textContent = '🔑 DEV LOGIN (Google)';
-                googleBtn.style.background = '#4285f4';
-                googleBtn.style.color = 'white';
-                googleBtn.style.border = 'none';
-                googleBtn.style.padding = '12px 24px';
-                googleBtn.style.borderRadius = '4px';
-                googleBtn.style.cursor = 'pointer';
-                googleBtn.style.fontSize = '16px';
-                googleBtn.style.fontWeight = 'bold';
+            // Configurar Google Sign-In
+            google.accounts.id.initialize({
+                client_id: clientId,
+                callback: handleGoogleSignIn
+            });
+            
+            // Renderizar el botón de Google en la top bar (prioridad) o en la sección de login
+            const topBarGoogleBtn = document.getElementById('topBarGoogleLoginBtn');
+            const loginGoogleBtn = document.getElementById('googleLoginBtn');
+            
+            // Priorizar el botón de la top bar si está visible
+            const targetBtn = topBarGoogleBtn || loginGoogleBtn;
+            
+            if (targetBtn) {
+                console.log('🎯 Rendering Google button on:', targetBtn.id);
+                google.accounts.id.renderButton(targetBtn, {
+                    theme: 'outline',
+                    size: 'large',
+                    text: 'signin_with',
+                    shape: 'rectangular',
+                    width: 200
+                });
+            } else {
+                console.error('❌ No Google login button found');
+            }
+        }
+        
+        async function handleGoogleSignIn(response) {
+            console.log('🔐 Google Sign-In response received');
+            
+            if (typeof authManager !== 'undefined') {
+                const success = await authManager.loginWithGoogleToken(response.credential);
+                if (success) {
+                    console.log('✅ Google login successful');
+                } else {
+                    console.error('❌ Google login failed');
+                }
+            } else {
+                console.error('❌ AuthManager not loaded');
             }
         }
 
-        // Función de Google Sign-In removida para desarrollo
-        // Se usa authManager.devLogin() directamente
+        // Configurar event listeners para los botones en la top bar
+        document.addEventListener('DOMContentLoaded', function() {
+            const devLoginBtn = document.getElementById('devLoginBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const topBarGoogleLoginBtn = document.getElementById('topBarGoogleLoginBtn');
+            
+            if (devLoginBtn) {
+                devLoginBtn.addEventListener('click', function() {
+                    if (typeof authManager !== 'undefined') {
+                        authManager.devLogin();
+                    }
+                });
+            }
+            
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    if (typeof authManager !== 'undefined') {
+                        authManager.logout();
+                    }
+                });
+            }
+            
+            // Event listener para el botón de Google login en la top bar
+            if (topBarGoogleLoginBtn) {
+                topBarGoogleLoginBtn.addEventListener('click', function() {
+                    console.log('🔘 Top bar Google login button clicked');
+                    // El Google SDK manejará el login automáticamente
+                });
+            }
+        });
 
         // === MANEJO DE ERRORES ===
         window.addEventListener('error', function(e) {

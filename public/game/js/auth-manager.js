@@ -4,7 +4,7 @@
 function getApiBaseUrl() {
     return window.location.hostname === 'localhost' ? 
         'http://localhost:3000' : 
-        'http://128.254.207.105:3000';
+        'https://back.pruebatupanel.com';
 }
 
 class AuthManager {
@@ -38,6 +38,9 @@ class AuthManager {
                 console.error('Auth verification failed:', error);
                 this.logout();
             }
+        } else {
+            // No token found, ensure UI shows login state
+            this.updateUI();
         }
     }
 
@@ -157,16 +160,49 @@ class AuthManager {
         const loginSection = document.getElementById('loginSection');
         const gameSection = document.getElementById('gameSection');
         const userName = document.getElementById('userName');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const topBarGoogleLoginBtn = document.getElementById('topBarGoogleLoginBtn');
+        const googleLoginBtn = document.getElementById('googleLoginBtn');
+        const devLoginBtn = document.getElementById('devLoginBtn');
+        
+        console.log('🔧 updateUI called - isAuthenticated:', this.isAuthenticated);
+        console.log('🔧 Elements found:', {
+            loginSection: !!loginSection,
+            gameSection: !!gameSection,
+            userName: !!userName,
+            logoutBtn: !!logoutBtn,
+            topBarGoogleLoginBtn: !!topBarGoogleLoginBtn,
+            googleLoginBtn: !!googleLoginBtn,
+            devLoginBtn: !!devLoginBtn
+        });
         
         if (this.isAuthenticated && this.user) {
             if (loginSection) loginSection.style.display = 'none';
             if (gameSection) gameSection.style.display = 'block';
             if (userName) userName.textContent = this.user.name;
+            if (logoutBtn) logoutBtn.style.display = 'block';
+            if (topBarGoogleLoginBtn) topBarGoogleLoginBtn.style.display = 'none';
+            if (googleLoginBtn) googleLoginBtn.style.display = 'none';
+            if (devLoginBtn) devLoginBtn.style.display = 'none';
             this.updateBalanceDisplay();
+            this.updateUserDisplay();
             console.log('🎮 UI updated for authenticated user');
         } else {
-            if (loginSection) loginSection.style.display = 'block';
-            if (gameSection) gameSection.style.display = 'none';
+            // Siempre mostrar el dashboard, pero con datos básicos
+            if (loginSection) loginSection.style.display = 'none';
+            if (gameSection) gameSection.style.display = 'block';
+            if (userName) userName.textContent = 'Usuario';
+            if (logoutBtn) logoutBtn.style.display = 'none';
+            // Mostrar el botón de Google login en la top bar si existe
+            if (topBarGoogleLoginBtn) {
+                topBarGoogleLoginBtn.style.display = 'flex';
+                console.log('🔧 Top bar Google login button display set to flex');
+            } else if (googleLoginBtn) {
+                googleLoginBtn.style.display = 'block';
+                console.log('🔧 Login section Google login button display set to block');
+            }
+            if (devLoginBtn) devLoginBtn.style.display = 'block';
+            this.showBasicUserData();
             console.log('🔒 UI updated for guest user');
         }
     }
@@ -215,6 +251,24 @@ class AuthManager {
             'Authorization': `Bearer ${this.token}`,
             'Content-Type': 'application/json'
         };
+    }
+
+    // Método para mostrar datos básicos cuando no hay sesión
+    showBasicUserData() {
+        const availableBalance = document.getElementById('availableBalance');
+        const userAvatar = document.getElementById('userAvatar');
+        
+        // Mostrar balance básico
+        if (availableBalance) {
+            availableBalance.textContent = '0.00';
+        }
+        
+        // Ocultar avatar
+        if (userAvatar) {
+            userAvatar.style.display = 'none';
+        }
+        
+        console.log('👤 Showing basic user data for guest user');
     }
 }
 

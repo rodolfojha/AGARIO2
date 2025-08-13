@@ -4,7 +4,7 @@
 function getApiBaseUrl() {
     return window.location.hostname === 'localhost' ? 
         'http://localhost:3000' : 
-        'http://128.254.207.105:3000';
+        'https://back.pruebatupanel.com';
 }
 
 // === INSTANCIAS GLOBALES ===
@@ -97,6 +97,10 @@ if (/Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent)) {
 window.onload = async function() {
     console.log('🎮 Initializing Agar.io Betting Platform...');
     
+    // Mostrar el dashboard como página principal
+    document.getElementById('gameSection').style.display = 'block';
+    document.getElementById('loginSection').style.display = 'none';
+    
     // Esperar a que las clases estén disponibles
     if (typeof AuthManager === 'undefined' || typeof BettingClient === 'undefined') {
         console.error('❌ AuthManager or BettingClient not loaded');
@@ -173,6 +177,7 @@ document.body.appendChild(refreshBtn);
             const modal = document.getElementById('topUpModal');
             if (modal) {
                 modal.style.display = 'block';
+                await loadAvailableCurrencies();
                 setupTopUpModalHandlers();
             }
         };
@@ -274,11 +279,17 @@ document.body.appendChild(refreshBtn);
                 e.preventDefault();
                 console.log('💰 Cash out hotkey pressed');
                 console.log('🔍 bettingClient exists:', !!bettingClient);
-                console.log('🔍 currentGame exists:', !!(bettingClient && bettingClient.currentGame));
+                console.log('🔍 bettingClient type:', typeof bettingClient);
+                if (bettingClient) {
+                    console.log('🔍 bettingClient.currentGame:', bettingClient.currentGame);
+                    console.log('🔍 bettingClient.currentValue:', bettingClient.currentValue);
+                }
                 if (bettingClient && bettingClient.currentGame) {
-                    bettingClient.showCashOutModalAlternative(); // Usar método alternativo
+                    console.log('✅ Processing cash out directly...');
+                    // Ejecutar cashout directamente sin modal
+                    handleDirectCashOut();
                 } else {
-                    console.log('❌ Cannot show cash out modal - bettingClient or currentGame not available');
+                    console.log('❌ Cannot process cash out - bettingClient or currentGame not available');
                 }
             }
             
@@ -293,6 +304,39 @@ document.body.appendChild(refreshBtn);
 }
 
 // === NOWPAYMENTS TOP-UP MODAL HANDLERS ===
+
+// Función para cargar monedas disponibles
+async function loadAvailableCurrencies() {
+    try {
+        console.log('🪙 Loading available currencies...');
+        
+        const res = await fetch(`${getApiBaseUrl()}/api/payments/currencies`);
+        const data = await res.json();
+        
+        if (data.success && data.currencies) {
+            const currencySelect = document.getElementById('topUpCurrency');
+            if (currencySelect) {
+                // Limpiar opciones existentes
+                currencySelect.innerHTML = '';
+                
+                // Agregar opciones
+                data.currencies.forEach(currency => {
+                    const option = document.createElement('option');
+                    option.value = currency.toLowerCase();
+                    option.textContent = currency.toUpperCase();
+                    currencySelect.appendChild(option);
+                });
+                
+                console.log('✅ Loaded currencies:', data.currencies);
+            }
+        } else {
+            console.error('❌ Failed to load currencies:', data.error);
+        }
+    } catch (error) {
+        console.error('❌ Error loading currencies:', error);
+    }
+}
+
 function setupTopUpModalHandlers() {
     const modal = document.getElementById('topUpModal');
     if (!modal) return;
@@ -339,6 +383,9 @@ function setupTopUpModalHandlers() {
                 showError('Not authenticated');
                 return;
             }
+            
+            console.log('💳 Creating NOWPayments payment:', { amount, currency, userId: authManager.user.id });
+            
             const res = await fetch(`${getApiBaseUrl()}/api/payments/nowpayments`, {
                 method: 'POST',
                 headers: {
@@ -352,18 +399,26 @@ function setupTopUpModalHandlers() {
                     userId: authManager.user.id
                 })
             });
+            
             const data = await res.json();
+            console.log('💳 NOWPayments response:', data);
+            
             if (!data.success) throw new Error(data.error || 'Create payment failed');
+            
             currentPaymentId = data.payment.id;
+            
             // Mostrar instrucciones de pago
-            payAmountEl.textContent = `${data.payment.pay_amount} ${currency.toUpperCase()}`;
+            payAmountEl.textContent = `${data.payment.pay_amount} ${data.payment.pay_currency.toUpperCase()}`;
             payAddressEl.textContent = data.payment.pay_address;
             qrImg.src = data.payment.qr_code_url;
             expEl.textContent = new Date(data.payment.expires_at).toLocaleString();
+            
             stepCreate.style.display = 'none';
             stepPay.style.display = 'block';
+            
+            console.log('✅ Payment created successfully:', data.payment.id);
         } catch (e) {
-            console.error(e);
+            console.error('❌ Payment creation error:', e);
             showError(e.message);
         }
     };
@@ -372,6 +427,9 @@ function setupTopUpModalHandlers() {
         try {
             hideError();
             if (!currentPaymentId) return;
+            
+            console.log('🔍 Checking NOWPayments payment status:', currentPaymentId);
+            
             const res = await fetch(`${getApiBaseUrl()}/api/payments/nowpayments`, {
                 method: 'POST',
                 headers: {
@@ -383,21 +441,61 @@ function setupTopUpModalHandlers() {
                     paymentId: currentPaymentId
                 })
             });
+            
             const data = await res.json();
+            console.log('🔍 NOWPayments status response:', data);
+            
             if (!data.success) throw new Error(data.error || 'Check failed');
+            
             if (data.payment.status === 'finished') {
+                console.log('✅ Payment finished - updating balance');
                 // Refrescar balance y cerrar modal
                 await bettingClient.refreshBalance();
                 modal.style.display = 'none';
                 reset();
+            } else if (data.payment.status === 'confirmed') {
+                console.log('✅ Payment confirmed - waiting for final confirmation');
+                showError(`Payment confirmed! Waiting for final confirmation. Try again in 30-60s.`);
+            } else if (data.payment.status === 'waiting') {
+                console.log('⏳ Payment waiting - user needs to complete payment');
+                showError(`Payment waiting. Please complete the payment and try again.`);
+            } else if (data.payment.status === 'expired') {
+                console.log('❌ Payment expired');
+                showError(`Payment expired. Please create a new payment.`);
+                reset();
+            } else if (data.payment.status === 'failed') {
+                console.log('❌ Payment failed');
+                showError(`Payment failed. Please try again.`);
+                reset();
             } else {
+                console.log('ℹ️ Unknown payment status:', data.payment.status);
                 showError(`Status: ${data.payment.status}. Try again in 30-60s.`);
             }
         } catch (e) {
-            console.error(e);
+            console.error('❌ Payment check error:', e);
             showError(e.message);
         }
     };
+}
+
+// === FUNCIÓN PARA MANEJAR CASHOUT DIRECTO ===
+async function handleDirectCashOut() {
+    console.log('💸 Processing direct cash out...');
+    
+    try {
+        const result = await bettingClient.cashOut();
+        if (result) {
+            console.log('✅ Cash out successful:', result);
+            if (socket) {
+                socket.disconnect();
+            }
+            returnToMenu();
+        } else {
+            console.log('❌ Cash out failed');
+        }
+    } catch (error) {
+        console.error('🚨 Cash out error:', error);
+    }
 }
 
 // === FUNCIÓN PARA MANEJAR INICIO DE JUEGO ===
@@ -405,11 +503,27 @@ async function handleStartGame() {
     console.log('🎮 ========== handleStartGame STARTED ==========');
     
     const playerNameInput = document.getElementById('playerNameInput');
-    const activeBetButton = document.querySelector('.bet-btn[style*="FFED4E"]') || document.querySelector('.bet-btn');
+    
+    // Mejorar la detección del botón activo
+    let activeBetButton = document.querySelector('.bet-btn[style*="FFED4E"]');
+    if (!activeBetButton) {
+        // Buscar por color de fondo específico
+        const allBetButtons = document.querySelectorAll('.bet-btn');
+        activeBetButton = Array.from(allBetButtons).find(btn => 
+            btn.style.background === 'rgb(255, 237, 78)' || 
+            btn.style.background === '#FFED4E' ||
+            btn.classList.contains('active')
+        );
+    }
+    if (!activeBetButton) {
+        // Fallback al primer botón
+        activeBetButton = document.querySelector('.bet-btn');
+    }
     
     console.log('🔍 Raw elements:', {
         playerNameInput,
         activeBetButton,
+        activeBetButtonStyle: activeBetButton?.style.background,
         playerNameInputValue: playerNameInput?.value
     });
     
@@ -422,6 +536,7 @@ async function handleStartGame() {
     let betAmount = 1; // Valor por defecto
     if (activeBetButton) {
         betAmount = parseFloat(activeBetButton.getAttribute('data-bet'));
+        console.log('💰 Selected bet amount from button:', betAmount);
     }
     
     const playerName = playerNameInput.value.trim();
@@ -518,10 +633,10 @@ function startGameWithBetting(type, playerName, gameData) {
         global.gameValue = gameData.current_value;
     }
 
-    // Conectar al game server
-    const gameServerUrl = window.location.hostname === 'localhost' ? 
-        'http://localhost:3001' : 
-        'http://128.254.207.105:3001';
+            // Conectar al game server
+        const gameServerUrl = window.location.hostname === 'localhost' ? 
+            'http://localhost:3001' : 
+            'https://back.pruebatupanel.com';
     
     socket = io(gameServerUrl, { query: query });
     global.socket = socket;
@@ -537,19 +652,19 @@ function startGameWithBetting(type, playerName, gameData) {
             currentValueDisplay.style.display = 'block';
         }
         
-                       if (cashOutBtn) {
-                   cashOutBtn.style.display = 'block';
-                   cashOutBtn.onclick = () => {
-                       console.log('💰 Cash out button clicked');
-                       console.log('🔍 bettingClient exists:', !!bettingClient);
-                       console.log('🔍 currentGame exists:', !!(bettingClient && bettingClient.currentGame));
-                       if (bettingClient && bettingClient.currentGame) {
-                           bettingClient.showCashOutModalAlternative(); // Usar método alternativo
-                       } else {
-                           console.log('❌ Cannot show cash out modal - bettingClient or currentGame not available');
-                       }
-                   };
-               }
+                                               if (cashOutBtn) {
+                    cashOutBtn.style.display = 'block';
+                    cashOutBtn.onclick = () => {
+                        console.log('💰 Cash out button clicked');
+                        console.log('🔍 bettingClient exists:', !!bettingClient);
+                        console.log('🔍 currentGame exists:', !!(bettingClient && bettingClient.currentGame));
+                        if (bettingClient && bettingClient.currentGame) {
+                            handleDirectCashOut(); // Ejecutar cashout directamente
+                        } else {
+                            console.log('❌ Cannot process cash out - bettingClient or currentGame not available');
+                        }
+                    };
+                }
         
         if (controlsIndicator) {
             controlsIndicator.style.display = 'block';
@@ -1243,10 +1358,26 @@ function reestablishEventListeners() {
     
     // Re-establecer event listeners para botones de apuesta
     const betButtons = document.querySelectorAll('.bet-btn');
-    betButtons.forEach(button => {
+    let activeButtonIndex = 0; // Por defecto el primer botón
+    
+    // Encontrar cuál botón estaba activo antes de clonar
+    betButtons.forEach((button, index) => {
+        if (button.style.background === 'rgb(255, 237, 78)' || button.style.background === '#FFED4E') {
+            activeButtonIndex = index;
+        }
+    });
+    
+    betButtons.forEach((button, index) => {
         // Remover event listeners anteriores
         const newButton = button.cloneNode(true);
         button.parentNode.replaceChild(newButton, button);
+        
+        // Restaurar el estado visual del botón activo
+        if (index === activeButtonIndex) {
+            newButton.style.background = '#FFED4E';
+        } else {
+            newButton.style.background = '#FFD700';
+        }
         
         // Agregar event listener fresco
         newButton.onclick = function() {
@@ -1268,6 +1399,16 @@ function reestablishEventListeners() {
             }
         };
     });
+    
+    // Actualizar el texto del botón JOIN GAME con el monto del botón activo
+    const activeButton = betButtons[activeButtonIndex];
+    if (activeButton) {
+        const betAmount = parseFloat(activeButton.getAttribute('data-bet'));
+        const joinGameBtn = document.getElementById('startButton');
+        if (joinGameBtn) {
+            joinGameBtn.textContent = `▷ JOIN GAME ($${betAmount})`;
+        }
+    }
     
     console.log('✅ Bet buttons listeners re-established');
     
