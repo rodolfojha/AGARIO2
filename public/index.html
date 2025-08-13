@@ -549,82 +549,14 @@
     <script src="game/js/chat-client.js"></script>
     <script src="game/js/app-betting.js"></script>
          <script>
-         // Usar la variable authManager global existente
-         // authManager ya está declarado en app-betting.js
-         
-         window.onGoogleLibraryLoad = function() {
-             console.log('🔐 Google Sign-In SDK loaded');
-             const apiBase = window.location.hostname === 'localhost'
-                 ? 'http://localhost:3000'
-                 : 'https://back.pruebatupanel.com';
-             fetch(apiBase + '/api/config/google')
-                 .then(response => response.json())
-                 .then(config => {
-                     if (config.clientId) {
-                         initializeGoogleSignIn(config.clientId);
-                     } else {
-                         console.warn('⚠️ Google Client ID not configured');
-                     }
-                 })
-                 .catch(error => {
-                     console.error('❌ Failed to load Google config:', error);
-                 });
-         };
-         
-         function initializeGoogleSignIn(clientId) {
-             console.log('🔧 Initializing Google Sign-In with client ID:', clientId.substring(0, 20) + '...');
-             
-             try {
-                 google.accounts.id.initialize({
-                     client_id: clientId,
-                     callback: handleGoogleSignIn,
-                     auto_select: false,
-                     cancel_on_tap_outside: true
-                 });
-                 
-                 console.log('✅ Google Sign-In initialized successfully');
-                 
-                 // Configurar el botón de Google manualmente
-                 const googleBtn = document.getElementById('googleLoginBtn');
-                 if (googleBtn) {
-                     // Remover event listeners existentes para evitar duplicados
-                     googleBtn.replaceWith(googleBtn.cloneNode(true));
-                     const newGoogleBtn = document.getElementById('googleLoginBtn');
-                     
-                     newGoogleBtn.addEventListener('click', () => {
-                         console.log('🔐 Google button clicked');
-                         try {
-                             google.accounts.id.prompt();
-                         } catch (error) {
-                             console.error('❌ Error prompting Google Sign-In:', error);
-                         }
-                     });
-                     
-                     console.log('✅ Google button event listener added');
-                 } else {
-                     console.error('❌ Google button not found');
-                 }
-             } catch (error) {
-                 console.error('❌ Error initializing Google Sign-In:', error);
-             }
-         }
-         
-         async function handleGoogleSignIn(response) {
-             console.log('🔐 Google Sign-In response received');
-             if (typeof authManager !== 'undefined') {
-                 const success = await authManager.loginWithGoogleToken(response.credential);
-                 if (success) {
-                     console.log('✅ Google login successful');
-                     updateLoginButtons();
-                 } else {
-                     console.error('❌ Google login failed');
-                 }
-             } else {
-                 console.error('❌ AuthManager not loaded');
-             }
-         }
-         
-                   // Función para actualizar la visibilidad de los botones de login
+          // Script principal simplificado y corregido
+          
+          // Variables globales
+          let authManager = null;
+          let currentBetAmount = 1;
+          let activeBetButton = null;
+          
+          // Función para actualizar la UI de login
           function updateLoginButtons() {
               const devLoginBtn = document.getElementById('devLoginBtn');
               const googleLoginBtn = document.getElementById('googleLoginBtn');
@@ -632,7 +564,6 @@
               const userName = document.getElementById('userName');
               
               if (authManager && authManager.isAuthenticated) {
-                  // Usuario autenticado - mostrar logout, ocultar login
                   if (devLoginBtn) devLoginBtn.style.display = 'none';
                   if (googleLoginBtn) googleLoginBtn.style.display = 'none';
                   if (logoutBtn) logoutBtn.style.display = 'block';
@@ -641,7 +572,6 @@
                   }
                   console.log('✅ User authenticated, showing logout button');
               } else {
-                  // Usuario no autenticado - mostrar login, ocultar logout
                   if (devLoginBtn) devLoginBtn.style.display = 'block';
                   if (googleLoginBtn) googleLoginBtn.style.display = 'block';
                   if (logoutBtn) logoutBtn.style.display = 'none';
@@ -651,209 +581,123 @@
                   console.log('🔒 User not authenticated, showing login buttons');
               }
           }
-         
-                   // Configurar event listeners cuando se cargue la página
+          
+          // Google Sign-In functions
+          window.onGoogleLibraryLoad = function() {
+              console.log('🔐 Google Sign-In SDK loaded');
+              const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://back.pruebatupanel.com';
+              fetch(apiBase + '/api/config/google')
+                  .then(response => response.json())
+                  .then(config => {
+                      if (config.clientId) {
+                          initializeGoogleSignIn(config.clientId);
+                      } else {
+                          console.warn('⚠️ Google Client ID not configured');
+                      }
+                  })
+                  .catch(error => {
+                      console.error('❌ Failed to load Google config:', error);
+                  });
+          };
+          
+          function initializeGoogleSignIn(clientId) {
+              console.log('🔧 Initializing Google Sign-In with client ID:', clientId.substring(0, 20) + '...');
+              try {
+                  google.accounts.id.initialize({
+                      client_id: clientId,
+                      callback: handleGoogleSignIn,
+                      auto_select: false,
+                      cancel_on_tap_outside: true
+                  });
+                  
+                  const googleBtn = document.getElementById('googleLoginBtn');
+                  if (googleBtn) {
+                      googleBtn.replaceWith(googleBtn.cloneNode(true));
+                      const newGoogleBtn = document.getElementById('googleLoginBtn');
+                      newGoogleBtn.addEventListener('click', () => {
+                          console.log('🔐 Google button clicked');
+                          try {
+                              google.accounts.id.prompt();
+                          } catch (error) {
+                              console.error('❌ Error prompting Google Sign-In:', error);
+                          }
+                      });
+                  }
+              } catch (error) {
+                  console.error('❌ Error initializing Google Sign-In:', error);
+              }
+          }
+          
+          async function handleGoogleSignIn(response) {
+              console.log('🔐 Google Sign-In response received');
+              if (authManager) {
+                  const success = await authManager.loginWithGoogleToken(response.credential);
+                  if (success) {
+                      console.log('✅ Google login successful');
+                      updateLoginButtons();
+                  } else {
+                      console.error('❌ Google login failed');
+                  }
+              } else {
+                  console.error('❌ AuthManager not loaded');
+              }
+          }
+          
+          // Debug functions
+          window.debugAuth = {
+              checkAuth: () => {
+                  console.log('🔍 Auth Status:', {
+                      authManager: authManager ? 'loaded' : 'missing',
+                      isAuthenticated: authManager ? authManager.isAuthenticated : 'N/A',
+                      user: authManager ? authManager.user : 'N/A',
+                      token: authManager ? (authManager.token ? 'exists' : 'missing') : 'N/A'
+                  });
+              },
+              forceLogin: () => {
+                  if (authManager) {
+                      console.log('🛠️ Forcing dev login...');
+                      authManager.devLogin();
+                  } else {
+                      console.log('❌ AuthManager not available');
+                  }
+              },
+              checkLocalStorage: () => {
+                  console.log('💾 LocalStorage:', {
+                      auth_token: localStorage.getItem('auth_token') ? 'exists' : 'missing',
+                      token_value: localStorage.getItem('auth_token') ? localStorage.getItem('auth_token').substring(0, 20) + '...' : 'N/A'
+                  });
+              },
+              updateUI: () => {
+                  updateLoginButtons();
+                  console.log('🔄 UI updated');
+              },
+              initAuthManager: () => {
+                  console.log('🔧 Manually initializing AuthManager...');
+                  if (typeof AuthManager !== 'undefined') {
+                      try {
+                          authManager = new AuthManager();
+                          authManager.initialize().then(() => {
+                              console.log('✅ AuthManager initialized manually');
+                              updateLoginButtons();
+                          });
+                      } catch (error) {
+                          console.error('❌ Error creating AuthManager:', error);
+                      }
+                  } else {
+                      console.error('❌ AuthManager class not found');
+                  }
+              }
+          };
+          
+          // Main initialization
           document.addEventListener('DOMContentLoaded', function() {
               console.log('🚀 Setting up login buttons and betting functionality...');
               
-              // Variables para el sistema de apuestas
-              let currentBetAmount = 1; // Valor por defecto
-              let activeBetButton = null;
-              
-              // Configurar botones de apuestas
-              const betButtons = document.querySelectorAll('.bet-button');
-              const startButton = document.getElementById('startButton');
-              
-              betButtons.forEach(button => {
-                  button.addEventListener('click', function() {
-                      // Remover clase activa de todos los botones
-                      betButtons.forEach(btn => {
-                          btn.classList.remove('bg-green-500', 'text-white');
-                          btn.classList.add('bg-yellow-400', 'text-black');
-                      });
-                      
-                      // Agregar clase activa al botón seleccionado
-                      this.classList.remove('bg-yellow-400', 'text-black');
-                      this.classList.add('bg-green-500', 'text-white');
-                      
-                      // Actualizar monto de apuesta
-                      currentBetAmount = parseFloat(this.getAttribute('data-bet'));
-                      activeBetButton = this;
-                      
-                      // Actualizar texto del botón JOIN GAME
-                      if (startButton) {
-                          startButton.textContent = `JOIN GAME ($${currentBetAmount})`;
-                      }
-                      
-                      console.log('💰 Selected bet amount:', currentBetAmount);
-                  });
-              });
-              
-              // Configurar botón JOIN GAME
-              if (startButton) {
-                  startButton.addEventListener('click', async function() {
-                      console.log('🎮 JOIN GAME button clicked');
-                      
-                      // Verificar si el usuario está autenticado
-                      if (!authManager || !authManager.isAuthenticated) {
-                          alert('⚠️ Por favor inicia sesión primero');
-                          return;
-                      }
-                      
-                      // Obtener nombre del jugador
-                      const playerNameInput = document.getElementById('playerNameInput');
-                      const playerName = playerNameInput ? playerNameInput.value.trim() : '';
-                      
-                      if (!playerName) {
-                          alert('⚠️ Por favor ingresa tu nombre de jugador');
-                          return;
-                      }
-                      
-                      // Verificar que se haya seleccionado una apuesta
-                      if (!activeBetButton) {
-                          alert('⚠️ Por favor selecciona un monto de apuesta');
-                          return;
-                      }
-                      
-                      console.log('🎯 Starting game with:', {
-                          playerName: playerName,
-                          betAmount: currentBetAmount,
-                          userId: authManager.user.id
-                      });
-                      
-                                             try {
-                           // Deshabilitar botón durante el proceso
-                           startButton.disabled = true;
-                           startButton.textContent = '🔄 Conectando...';
-                           
-                           // Iniciar juego usando el sistema existente
-                           if (typeof window.bettingClient !== 'undefined' && window.bettingClient.startGame) {
-                               // Usar el bettingClient global existente
-                               const gameData = await window.bettingClient.startGame(currentBetAmount);
-                               if (gameData) {
-                                   // Redirigir a la página del juego con los parámetros
-                                   const gameUrl = `/game.html?gameData=${encodeURIComponent(JSON.stringify(gameData))}&playerName=${encodeURIComponent(playerName)}&betAmount=${encodeURIComponent(currentBetAmount)}&userId=${encodeURIComponent(authManager.user.id)}`;
-                                   window.location.href = gameUrl;
-                               } else {
-                                   throw new Error('No se pudo iniciar el juego');
-                               }
-                           } else {
-                               // Fallback: conectar directamente al servidor
-                               const apiBase = window.location.hostname === 'localhost'
-                                   ? 'http://localhost:3000'
-                                   : 'https://back.pruebatupanel.com';
-                               
-                               const response = await fetch(apiBase + '/api/game/start', {
-                                   method: 'POST',
-                                   headers: {
-                                       'Content-Type': 'application/json',
-                                       'Authorization': 'Bearer ' + authManager.token
-                                   },
-                                   body: JSON.stringify({
-                                       betAmount: currentBetAmount
-                                   })
-                               });
-                               
-                               if (response.ok) {
-                                   const gameData = await response.json();
-                                   console.log('✅ Game started successfully:', gameData);
-                                   
-                                   // Redirigir a la página del juego con los parámetros
-                                   const gameUrl = `/game.html?gameData=${encodeURIComponent(JSON.stringify(gameData))}&playerName=${encodeURIComponent(playerName)}&betAmount=${encodeURIComponent(currentBetAmount)}&userId=${encodeURIComponent(authManager.user.id)}`;
-                                   window.location.href = gameUrl;
-                                   
-                               } else {
-                                   const error = await response.json();
-                                   alert('❌ Error al iniciar el juego: ' + (error.message || 'Error desconocido'));
-                               }
-                           }
-                          
-                      } catch (error) {
-                          console.error('❌ Error starting game:', error);
-                          alert('❌ Error al iniciar el juego: ' + error.message);
-                      } finally {
-                          // Restaurar botón
-                          startButton.disabled = false;
-                          startButton.textContent = `JOIN GAME ($${currentBetAmount})`;
-                      }
-                  });
-                             
-               
-               // Botón para volver al dashboard
-               const backToDashboardBtn = document.getElementById('backToDashboard');
-               if (backToDashboardBtn) {
-                   backToDashboardBtn.addEventListener('click', () => {
-                       console.log('🏠 Volviendo al dashboard...');
-                       
-                                               // Ocultar área de juego
-                        const gameAreaWrapper = document.getElementById('gameAreaWrapper');
-                        if (gameAreaWrapper) {
-                            gameAreaWrapper.classList.remove('active');
-                            setTimeout(() => {
-                                gameAreaWrapper.style.display = 'none';
-                            }, 300);
-                        }
-                        
-                        // Restaurar fondo animado
-                        const backgroundAnimated = document.querySelector('.background-animated');
-                        if (backgroundAnimated) {
-                            backgroundAnimated.style.opacity = '1';
-                        }
-                       
-                       // Mostrar dashboard
-                       const gameSection = document.getElementById('gameSection');
-                       if (gameSection) {
-                           gameSection.style.display = 'block';
-                       }
-                       
-                       // Desconectar del servidor del juego si existe
-                       if (window.gameSocket) {
-                           window.gameSocket.disconnect();
-                           window.gameSocket = null;
-                       }
-                   });
-               }
-               
-               // Botón Dev Login
-             const devLoginBtn = document.getElementById('devLoginBtn');
-             if (devLoginBtn) {
-                 devLoginBtn.addEventListener('click', async () => {
-                     console.log('🛠️ Dev login clicked');
-                     if (typeof authManager !== 'undefined') {
-                         const success = await authManager.devLogin();
-                         if (success) {
-                             console.log('✅ Dev login successful');
-                             updateLoginButtons();
-                         } else {
-                             console.error('❌ Dev login failed');
-                         }
-                     } else {
-                         console.error('❌ AuthManager not loaded');
-                     }
-                 });
-             }
-             
-             // Botón Logout
-             const logoutBtn = document.getElementById('logoutBtn');
-             if (logoutBtn) {
-                 logoutBtn.addEventListener('click', () => {
-                     console.log('👋 Logout clicked');
-                     if (typeof authManager !== 'undefined') {
-                         authManager.logout();
-                         updateLoginButtons();
-                     }
-                 });
-             }
-             
-                           // Inicializar AuthManager
+              // Initialize AuthManager first
               console.log('🔧 Initializing AuthManager...');
               if (typeof AuthManager !== 'undefined') {
                   try {
-                      // Crear nueva instancia de AuthManager
                       authManager = new AuthManager();
-                      console.log('✅ AuthManager instance created');
-                      
-                      // Inicializar AuthManager
                       authManager.initialize().then(() => {
                           console.log('✅ AuthManager initialized successfully');
                           updateLoginButtons();
@@ -866,78 +710,132 @@
               } else {
                   console.error('❌ AuthManager class not found');
               }
-         });
-         
-         // Global error handler
-         window.addEventListener('error', function(e) {
-             console.error('🚨 Global error:', e.error);
-         });
-        // Debug functions disponibles en producción también
-        window.debugAuth = {
-            checkAuth: () => {
-                console.log('🔍 Auth Status:', {
-                    authManager: typeof authManager !== 'undefined' ? 'loaded' : 'missing',
-                    isAuthenticated: authManager ? authManager.isAuthenticated : 'N/A',
-                    user: authManager ? authManager.user : 'N/A',
-                    token: authManager ? (authManager.token ? 'exists' : 'missing') : 'N/A'
-                });
-            },
-            forceLogin: () => {
-                if (typeof authManager !== 'undefined') {
-                    console.log('🛠️ Forcing dev login...');
-                    authManager.devLogin();
-                } else {
-                    console.log('❌ AuthManager not available');
-                }
-            },
-            checkLocalStorage: () => {
-                console.log('💾 LocalStorage:', {
-                    auth_token: localStorage.getItem('auth_token') ? 'exists' : 'missing',
-                    token_value: localStorage.getItem('auth_token') ? localStorage.getItem('auth_token').substring(0, 20) + '...' : 'N/A'
-                });
-            },
-            updateUI: () => {
-                if (typeof updateLoginButtons === 'function') {
-                    updateLoginButtons();
-                    console.log('🔄 UI updated');
-                } else {
-                    console.log('❌ updateLoginButtons function not found');
-                }
-            }
-        };
-        
-        if (window.location.hostname === 'localhost') {
-            window.debugBetting = {
-                checkGlobal: () => console.log('Global:', typeof global !== 'undefined' ? global : 'undefined'),
-                checkAuth: () => console.log('AuthManager:', typeof AuthManager !== 'undefined' ? 'loaded' : 'missing'),
-                forceLogin: () => {
-                    if (typeof authManager !== 'undefined') {
-                        authManager.devLogin();
-                    } else {
-                        console.log('❌ AuthManager not available');
-                    }
-                },
-                showElements: () => {
-                    console.log('Elements:', {
-                        devLoginBtn: !!document.getElementById('devLoginBtn'),
-                        gameSection: !!document.getElementById('gameSection'),
-                        canvas: !!document.getElementById('cvs')
-                    });
-                },
-                testGoogleLogin: () => {
-                    if (typeof google !== 'undefined') {
-                        google.accounts.id.prompt();
-                    } else {
-                        console.log('❌ Google SDK not loaded');
-                    }
-                }
-            };
-            console.log('🔧 Development mode - Use window.debugBetting for helpers');
-        }
-        
-        console.log('🔧 Debug mode - Use window.debugAuth for authentication helpers');
-    </script>
-         <script>
+              
+              // Setup bet buttons
+              const betButtons = document.querySelectorAll('.bet-button');
+              const startButton = document.getElementById('startButton');
+              
+              betButtons.forEach(button => {
+                  button.addEventListener('click', function() {
+                      betButtons.forEach(btn => {
+                          btn.classList.remove('bg-green-500', 'text-white');
+                          btn.classList.add('bg-yellow-400', 'text-black');
+                      });
+                      
+                      this.classList.remove('bg-yellow-400', 'text-black');
+                      this.classList.add('bg-green-500', 'text-white');
+                      
+                      currentBetAmount = parseFloat(this.getAttribute('data-bet'));
+                      activeBetButton = this;
+                      
+                      if (startButton) {
+                          startButton.textContent = `JOIN GAME ($${currentBetAmount})`;
+                      }
+                      
+                      console.log('💰 Selected bet amount:', currentBetAmount);
+                  });
+              });
+              
+              // Setup JOIN GAME button
+              if (startButton) {
+                  startButton.addEventListener('click', async function() {
+                      console.log('🎮 JOIN GAME button clicked');
+                      
+                      if (!authManager || !authManager.isAuthenticated) {
+                          alert('⚠️ Por favor inicia sesión primero');
+                          return;
+                      }
+                      
+                      const playerNameInput = document.getElementById('playerNameInput');
+                      const playerName = playerNameInput ? playerNameInput.value.trim() : '';
+                      
+                      if (!playerName) {
+                          alert('⚠️ Por favor ingresa tu nombre de jugador');
+                          return;
+                      }
+                      
+                      if (!activeBetButton) {
+                          alert('⚠️ Por favor selecciona un monto de apuesta');
+                          return;
+                      }
+                      
+                      try {
+                          startButton.disabled = true;
+                          startButton.textContent = '🔄 Conectando...';
+                          
+                          if (typeof window.bettingClient !== 'undefined' && window.bettingClient.startGame) {
+                              const gameData = await window.bettingClient.startGame(currentBetAmount);
+                              if (gameData) {
+                                  const gameUrl = `/game.html?gameData=${encodeURIComponent(JSON.stringify(gameData))}&playerName=${encodeURIComponent(playerName)}&betAmount=${encodeURIComponent(currentBetAmount)}&userId=${encodeURIComponent(authManager.user.id)}`;
+                                  window.location.href = gameUrl;
+                              } else {
+                                  throw new Error('No se pudo iniciar el juego');
+                              }
+                          } else {
+                              const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://back.pruebatupanel.com';
+                              const response = await fetch(apiBase + '/api/game/start', {
+                                  method: 'POST',
+                                  headers: {
+                                      'Content-Type': 'application/json',
+                                      'Authorization': 'Bearer ' + authManager.token
+                                  },
+                                  body: JSON.stringify({ betAmount: currentBetAmount })
+                              });
+                              
+                              if (response.ok) {
+                                  const gameData = await response.json();
+                                  const gameUrl = `/game.html?gameData=${encodeURIComponent(JSON.stringify(gameData))}&playerName=${encodeURIComponent(playerName)}&betAmount=${encodeURIComponent(currentBetAmount)}&userId=${encodeURIComponent(authManager.user.id)}`;
+                                  window.location.href = gameUrl;
+                              } else {
+                                  const error = await response.json();
+                                  alert('❌ Error al iniciar el juego: ' + (error.message || 'Error desconocido'));
+                              }
+                          }
+                      } catch (error) {
+                          console.error('❌ Error starting game:', error);
+                          alert('❌ Error al iniciar el juego: ' + error.message);
+                      } finally {
+                          startButton.disabled = false;
+                          startButton.textContent = `JOIN GAME ($${currentBetAmount})`;
+                      }
+                  });
+              }
+              
+              // Setup login buttons
+              const devLoginBtn = document.getElementById('devLoginBtn');
+              const logoutBtn = document.getElementById('logoutBtn');
+              
+              if (devLoginBtn) {
+                  devLoginBtn.addEventListener('click', async () => {
+                      console.log('🛠️ Dev login clicked');
+                      if (authManager) {
+                          const success = await authManager.devLogin();
+                          if (success) {
+                              console.log('✅ Dev login successful');
+                              updateLoginButtons();
+                          } else {
+                              console.error('❌ Dev login failed');
+                          }
+                      } else {
+                          console.error('❌ AuthManager not loaded');
+                      }
+                  });
+              }
+              
+              if (logoutBtn) {
+                  logoutBtn.addEventListener('click', () => {
+                      console.log('👋 Logout clicked');
+                      if (authManager) {
+                          authManager.logout();
+                          updateLoginButtons();
+                      }
+                  });
+              }
+          });
+          
+          console.log('🔧 Debug mode - Use window.debugAuth for authentication helpers');
+          </script>
+     <script>
          // Verificar si Google SDK ya está cargado
          if (typeof google !== 'undefined' && google.accounts) {
              console.log('✅ Google SDK already loaded');
