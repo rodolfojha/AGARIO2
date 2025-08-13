@@ -552,7 +552,7 @@
           // Script principal simplificado y corregido
           
           // Variables globales
-          let authManager = null;
+          // authManager ya está declarado globalmente en app-betting.js
           let currentBetAmount = 1;
           let activeBetButton = null;
           
@@ -673,7 +673,10 @@
               },
               initAuthManager: () => {
                   console.log('🔧 Manually initializing AuthManager...');
-                  if (typeof AuthManager !== 'undefined') {
+                  if (typeof authManager !== 'undefined' && authManager) {
+                      console.log('✅ AuthManager already exists, just updating UI');
+                      updateLoginButtons();
+                  } else if (typeof AuthManager !== 'undefined') {
                       try {
                           authManager = new AuthManager();
                           authManager.initialize().then(() => {
@@ -693,9 +696,13 @@
           document.addEventListener('DOMContentLoaded', function() {
               console.log('🚀 Setting up login buttons and betting functionality...');
               
-              // Initialize AuthManager first
-              console.log('🔧 Initializing AuthManager...');
-              if (typeof AuthManager !== 'undefined') {
+              // Verificar AuthManager global (ya inicializado por app-betting.js)
+              console.log('🔧 Checking global AuthManager...');
+              if (typeof authManager !== 'undefined' && authManager) {
+                  console.log('✅ AuthManager already exists globally');
+                  updateLoginButtons();
+              } else if (typeof AuthManager !== 'undefined') {
+                  console.log('🔧 Creating new AuthManager instance...');
                   try {
                       authManager = new AuthManager();
                       authManager.initialize().then(() => {
