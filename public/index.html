@@ -505,7 +505,7 @@
     <script src="game/js/app-betting.js"></script>
          <script>
          // Inicializar AuthManager cuando se cargue la página
-         let authManager;
+         let authManager = null;
          
          window.onGoogleLibraryLoad = function() {
              console.log('🔐 Google Sign-In SDK loaded');
@@ -528,18 +528,39 @@
          
          function initializeGoogleSignIn(clientId) {
              console.log('🔧 Initializing Google Sign-In with client ID:', clientId.substring(0, 20) + '...');
-             google.accounts.id.initialize({
-                 client_id: clientId,
-                 callback: handleGoogleSignIn
-             });
              
-             // Configurar el botón de Google manualmente
-             const googleBtn = document.getElementById('googleLoginBtn');
-             if (googleBtn) {
-                 googleBtn.addEventListener('click', () => {
-                     console.log('🔐 Google button clicked');
-                     google.accounts.id.prompt();
+             try {
+                 google.accounts.id.initialize({
+                     client_id: clientId,
+                     callback: handleGoogleSignIn,
+                     auto_select: false,
+                     cancel_on_tap_outside: true
                  });
+                 
+                 console.log('✅ Google Sign-In initialized successfully');
+                 
+                 // Configurar el botón de Google manualmente
+                 const googleBtn = document.getElementById('googleLoginBtn');
+                 if (googleBtn) {
+                     // Remover event listeners existentes para evitar duplicados
+                     googleBtn.replaceWith(googleBtn.cloneNode(true));
+                     const newGoogleBtn = document.getElementById('googleLoginBtn');
+                     
+                     newGoogleBtn.addEventListener('click', () => {
+                         console.log('🔐 Google button clicked');
+                         try {
+                             google.accounts.id.prompt();
+                         } catch (error) {
+                             console.error('❌ Error prompting Google Sign-In:', error);
+                         }
+                     });
+                     
+                     console.log('✅ Google button event listener added');
+                 } else {
+                     console.error('❌ Google button not found');
+                 }
+             } catch (error) {
+                 console.error('❌ Error initializing Google Sign-In:', error);
              }
          }
          
@@ -663,14 +684,26 @@
             console.log('🔧 Development mode - Use window.debugBetting for helpers');
         }
     </script>
-    <script>
-        if (typeof google === 'undefined') {
-            console.log('⏳ Waiting for Google SDK to load...');
-        } else {
-            console.log('✅ Google SDK already loaded');
-            window.onGoogleLibraryLoad();
-        }
-    </script>
+         <script>
+         // Verificar si Google SDK ya está cargado
+         if (typeof google !== 'undefined' && google.accounts) {
+             console.log('✅ Google SDK already loaded');
+             if (typeof window.onGoogleLibraryLoad === 'function') {
+                 window.onGoogleLibraryLoad();
+             } else {
+                 console.log('⏳ Waiting for onGoogleLibraryLoad function...');
+             }
+         } else {
+             console.log('⏳ Waiting for Google SDK to load...');
+             // Configurar un listener para cuando Google SDK se cargue
+             window.addEventListener('load', function() {
+                 if (typeof google !== 'undefined' && google.accounts && typeof window.onGoogleLibraryLoad === 'function') {
+                     console.log('✅ Google SDK loaded, calling onGoogleLibraryLoad');
+                     window.onGoogleLibraryLoad();
+                 }
+             });
+         }
+     </script>
     
     <!-- Script para las animaciones de los círculos -->
     <script>
