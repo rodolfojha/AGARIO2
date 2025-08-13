@@ -686,12 +686,22 @@
                           startButton.disabled = true;
                           startButton.textContent = '🔄 Conectando...';
                           
-                          // Iniciar juego usando el sistema existente
-                          if (typeof window.startGameWithBetting === 'function') {
-                              // Usar la función existente del sistema
-                              const gameData = await bettingClient.startGame(currentBetAmount);
-                              window.startGameWithBetting('player', playerName, gameData);
-                          } else {
+                                                     // Iniciar juego usando el sistema existente
+                           if (typeof window.bettingClient !== 'undefined' && window.bettingClient.startGame) {
+                               // Usar el bettingClient global existente
+                               const gameData = await window.bettingClient.startGame(currentBetAmount);
+                               if (gameData) {
+                                   // Usar la función existente del sistema
+                                   if (typeof window.startGameWithBetting === 'function') {
+                                       window.startGameWithBetting('player', playerName, gameData);
+                                   } else {
+                                       // Fallback: conectar directamente
+                                       await connectToGameServer(gameData, playerName);
+                                   }
+                               } else {
+                                   throw new Error('No se pudo iniciar el juego');
+                               }
+                           } else {
                               // Fallback: conectar directamente al servidor
                               const apiBase = window.location.hostname === 'localhost'
                                   ? 'http://localhost:3000'
@@ -760,9 +770,50 @@
                           startButton.textContent = `JOIN GAME ($${currentBetAmount})`;
                       }
                   });
-              }
-             
-             // Botón Dev Login
+                             }
+               
+               // Función para conectar al servidor del juego
+               async function connectToGameServer(gameData, playerName) {
+                   console.log('🎮 Connecting to game server...');
+                   
+                   // Ocultar dashboard y mostrar juego
+                   const gameSection = document.getElementById('gameSection');
+                   const gameAreaWrapper = document.getElementById('gameAreaWrapper');
+                   
+                   if (gameSection) gameSection.style.display = 'none';
+                   if (gameAreaWrapper) {
+                       gameAreaWrapper.style.display = 'block';
+                       gameAreaWrapper.style.opacity = '1';
+                   }
+                   
+                   // Conectar al servidor del juego
+                   const socketUrl = window.location.hostname === 'localhost'
+                       ? 'http://localhost:3000'
+                       : 'https://back.pruebatupanel.com';
+                   
+                   const socket = io(socketUrl, {
+                       query: {
+                           type: 'player',
+                           userId: authManager.user.id,
+                           gameId: gameData.id,
+                           betAmount: currentBetAmount
+                       }
+                   });
+                   
+                   // Configurar eventos del socket
+                   socket.on('connect', () => {
+                       console.log('✅ Connected to game server');
+                   });
+                   
+                   socket.on('disconnect', () => {
+                       console.log('❌ Disconnected from game server');
+                   });
+                   
+                   // Hacer el socket disponible globalmente
+                   window.gameSocket = socket;
+               }
+               
+               // Botón Dev Login
              const devLoginBtn = document.getElementById('devLoginBtn');
              if (devLoginBtn) {
                  devLoginBtn.addEventListener('click', async () => {
