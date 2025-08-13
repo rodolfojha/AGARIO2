@@ -624,24 +624,33 @@
              }
          }
          
-         // Función para actualizar la visibilidad de los botones de login
-         function updateLoginButtons() {
-             const devLoginBtn = document.getElementById('devLoginBtn');
-             const googleLoginBtn = document.getElementById('googleLoginBtn');
-             const logoutBtn = document.getElementById('logoutBtn');
-             
-             if (authManager && authManager.isAuthenticated) {
-                 // Usuario autenticado - mostrar logout, ocultar login
-                 if (devLoginBtn) devLoginBtn.style.display = 'none';
-                 if (googleLoginBtn) googleLoginBtn.style.display = 'none';
-                 if (logoutBtn) logoutBtn.style.display = 'block';
-             } else {
-                 // Usuario no autenticado - mostrar login, ocultar logout
-                 if (devLoginBtn) devLoginBtn.style.display = 'block';
-                 if (googleLoginBtn) googleLoginBtn.style.display = 'block';
-                 if (logoutBtn) logoutBtn.style.display = 'none';
-             }
-         }
+                   // Función para actualizar la visibilidad de los botones de login
+          function updateLoginButtons() {
+              const devLoginBtn = document.getElementById('devLoginBtn');
+              const googleLoginBtn = document.getElementById('googleLoginBtn');
+              const logoutBtn = document.getElementById('logoutBtn');
+              const userName = document.getElementById('userName');
+              
+              if (authManager && authManager.isAuthenticated) {
+                  // Usuario autenticado - mostrar logout, ocultar login
+                  if (devLoginBtn) devLoginBtn.style.display = 'none';
+                  if (googleLoginBtn) googleLoginBtn.style.display = 'none';
+                  if (logoutBtn) logoutBtn.style.display = 'block';
+                  if (userName && authManager.user) {
+                      userName.textContent = authManager.user.name || authManager.user.email || 'Usuario';
+                  }
+                  console.log('✅ User authenticated, showing logout button');
+              } else {
+                  // Usuario no autenticado - mostrar login, ocultar logout
+                  if (devLoginBtn) devLoginBtn.style.display = 'block';
+                  if (googleLoginBtn) googleLoginBtn.style.display = 'block';
+                  if (logoutBtn) logoutBtn.style.display = 'none';
+                  if (userName) {
+                      userName.textContent = 'Nombre del jugador';
+                  }
+                  console.log('🔒 User not authenticated, showing login buttons');
+              }
+          }
          
                    // Configurar event listeners cuando se cargue la página
           document.addEventListener('DOMContentLoaded', function() {
@@ -836,19 +845,19 @@
                  });
              }
              
-                           // Inicializar AuthManager si no está ya inicializado
-              if (typeof AuthManager !== 'undefined' && !authManager) {
-                  authManager = new AuthManager();
-                  authManager.initialize().then(() => {
-                      console.log('✅ AuthManager initialized');
-                      updateLoginButtons();
-                  });
-              } else if (authManager) {
-                  console.log('✅ AuthManager already exists, updating UI');
-                  updateLoginButtons();
-              } else {
-                  console.error('❌ AuthManager class not found');
-              }
+             // Inicializar AuthManager si no está ya inicializado
+             if (typeof AuthManager !== 'undefined' && !authManager) {
+                 authManager = new AuthManager();
+                 authManager.initialize().then(() => {
+                     console.log('✅ AuthManager initialized');
+                     updateLoginButtons();
+                 });
+             } else if (authManager) {
+                 console.log('✅ AuthManager already exists, updating UI');
+                 updateLoginButtons();
+             } else {
+                 console.error('❌ AuthManager class not found');
+             }
          });
         window.addEventListener('error', function(e) {
             console.error('🚨 Global error:', e.error);
