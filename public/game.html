@@ -419,6 +419,133 @@
             }
         });
 
+        // Configurar botón de Cash Out
+        document.addEventListener('DOMContentLoaded', function() {
+            const cashOutBtn = document.getElementById('cashOutBtn');
+            if (cashOutBtn) {
+                cashOutBtn.addEventListener('click', async () => {
+                    console.log('💰 Cash Out button clicked');
+                    
+                    // Verificar si hay un juego activo con valor
+                    if (typeof window.bettingClient !== 'undefined' && 
+                        window.bettingClient.currentGame && 
+                        window.bettingClient.currentValue > 0) {
+                        
+                        console.log('✅ Active game found, processing cash out...');
+                        
+                        // Calcular valores
+                        const currentValue = window.bettingClient.currentValue;
+                        const fee = currentValue * 0.1;
+                        const netAmount = currentValue * 0.9;
+                        
+                        // Crear modal de cash out con contador
+                        const modal = document.createElement('div');
+                        modal.id = 'cashOutExitModal';
+                        modal.style.cssText = `
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 100%;
+                            background: rgba(0,0,0,0.9);
+                            z-index: 10000;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                        `;
+                        
+                        let countdown = 5;
+                        modal.innerHTML = `
+                            <div style="
+                                background: #2c3e50;
+                                padding: 40px;
+                                border-radius: 20px;
+                                text-align: center;
+                                color: white;
+                                max-width: 450px;
+                                box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+                                border: 2px solid #f39c12;
+                            ">
+                                <h2 style="color: #f39c12; margin-bottom: 25px; font-size: 28px;">💰 ¡Cash Out Exitoso!</h2>
+                                <div style="margin: 25px 0; font-size: 20px; line-height: 1.6;">
+                                    <p><strong>Valor Total:</strong> <span style="color: #3498db;">$${currentValue.toFixed(2)}</span></p>
+                                    <p><strong>Comisión (10%):</strong> <span style="color: #e74c3c;">-$${fee.toFixed(2)}</span></p>
+                                    <p style="color: #2ecc71; font-size: 24px; font-weight: bold; margin-top: 15px;">
+                                        <strong>💵 Recibes: $${netAmount.toFixed(2)}</strong>
+                                    </p>
+                                </div>
+                                <div style="margin: 30px 0; font-size: 18px; color: #ecf0f1; padding: 15px; background: rgba(52, 73, 94, 0.5); border-radius: 10px;">
+                                    <p style="margin: 10px 0;">⏱️ Regresando al dashboard en</p>
+                                    <p style="font-size: 36px; color: #e74c3c; font-weight: bold; margin: 10px 0;">
+                                        <span id="exitCountdown">${countdown}</span>
+                                    </p>
+                                    <p style="margin: 10px 0;">segundos...</p>
+                                </div>
+                                <button id="exitNowBtn" style="
+                                    background: linear-gradient(45deg, #2ecc71, #27ae60);
+                                    color: white;
+                                    border: none;
+                                    padding: 15px 30px;
+                                    border-radius: 10px;
+                                    cursor: pointer;
+                                    font-weight: bold;
+                                    font-size: 16px;
+                                    margin-top: 15px;
+                                    box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+                                    transition: all 0.3s ease;
+                                ">🚀 Ir al Dashboard Ahora</button>
+                            </div>
+                        `;
+                        
+                        document.body.appendChild(modal);
+                        
+                        // Procesar cash out
+                        try {
+                            const result = await window.bettingClient.cashOut();
+                            if (result) {
+                                console.log('✅ Cash out processed successfully');
+                                
+                                // Countdown timer
+                                const countdownEl = document.getElementById('exitCountdown');
+                                const exitBtn = document.getElementById('exitNowBtn');
+                                
+                                const timer = setInterval(() => {
+                                    countdown--;
+                                    if (countdownEl) countdownEl.textContent = countdown;
+                                    
+                                    if (countdown <= 0) {
+                                        clearInterval(timer);
+                                        window.location.href = '/';
+                                    }
+                                }, 1000);
+                                
+                                // Botón para salir inmediatamente
+                                if (exitBtn) {
+                                    exitBtn.addEventListener('click', () => {
+                                        clearInterval(timer);
+                                        window.location.href = '/';
+                                    });
+                                }
+                            } else {
+                                console.error('❌ Cash out failed');
+                                document.body.removeChild(modal);
+                                alert('❌ Error al procesar cash out');
+                            }
+                        } catch (error) {
+                            console.error('❌ Cash out error:', error);
+                            document.body.removeChild(modal);
+                            alert('❌ Error al procesar cash out: ' + error.message);
+                        }
+                        
+                    } else {
+                        console.log('⚠️ No active game or no value');
+                        alert('⚠️ No hay juego activo para hacer cash out');
+                    }
+                });
+                console.log('✅ Cash Out button configured');
+            }
+        });
+
         // Inicializar el juego cuando se cargue la página
         window.addEventListener('load', async () => {
             try {
@@ -439,6 +566,30 @@
                             // Validar y establecer currentValue
                             const initialValue = parsedGameData.current_value || parseFloat(betAmount) || 0;
                             window.bettingClient.currentValue = isFinite(initialValue) ? initialValue : 0;
+                            
+                            // Sincronizar con variables globales (con retry)
+                            const syncGlobals = () => {
+                                if (typeof global !== 'undefined') {
+                                    global.currentBet = parseFloat(betAmount) || 0;
+                                    global.gameValue = window.bettingClient.currentValue;
+                                    global.playerType = 'player';
+                                    console.log('🌐 Global variables synchronized:', {
+                                        currentBet: global.currentBet,
+                                        gameValue: global.gameValue,
+                                        playerType: global.playerType
+                                    });
+                                    return true;
+                                } else {
+                                    console.warn('⚠️ Global object not ready, retrying...');
+                                    return false;
+                                }
+                            };
+                            
+                            // Intentar sincronizar ahora y también después de un delay
+                            if (!syncGlobals()) {
+                                setTimeout(syncGlobals, 500);
+                                setTimeout(syncGlobals, 1000);
+                            }
                             
                             console.log('🎯 Game initialized with:', {
                                 gameId: parsedGameData.id,
