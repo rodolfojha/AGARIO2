@@ -712,97 +712,52 @@
                           userId: authManager.user.id
                       });
                       
-                      try {
-                          // Deshabilitar botón durante el proceso
-                          startButton.disabled = true;
-                          startButton.textContent = '🔄 Conectando...';
-                          
-                                                     // Iniciar juego usando el sistema existente
+                                             try {
+                           // Deshabilitar botón durante el proceso
+                           startButton.disabled = true;
+                           startButton.textContent = '🔄 Conectando...';
+                           
+                           // Iniciar juego usando el sistema existente
                            if (typeof window.bettingClient !== 'undefined' && window.bettingClient.startGame) {
                                // Usar el bettingClient global existente
                                const gameData = await window.bettingClient.startGame(currentBetAmount);
                                if (gameData) {
-                                   // Usar la función existente del sistema
-                                   if (typeof window.startGameWithBetting === 'function') {
-                                       window.startGameWithBetting('player', playerName, gameData);
-                                   } else {
-                                       // Fallback: conectar directamente
-                                       await connectToGameServer(gameData, playerName);
-                                   }
+                                   // Redirigir a la página del juego con los parámetros
+                                   const gameUrl = `/game.html?gameData=${encodeURIComponent(JSON.stringify(gameData))}&playerName=${encodeURIComponent(playerName)}&betAmount=${encodeURIComponent(currentBetAmount)}&userId=${encodeURIComponent(authManager.user.id)}`;
+                                   window.location.href = gameUrl;
                                } else {
                                    throw new Error('No se pudo iniciar el juego');
                                }
                            } else {
-                              // Fallback: conectar directamente al servidor
-                              const apiBase = window.location.hostname === 'localhost'
-                                  ? 'http://localhost:3000'
-                                  : 'https://back.pruebatupanel.com';
-                              
-                              const response = await fetch(apiBase + '/api/game/start', {
-                                  method: 'POST',
-                                  headers: {
-                                      'Content-Type': 'application/json',
-                                      'Authorization': 'Bearer ' + authManager.token
-                                  },
-                                  body: JSON.stringify({
-                                      betAmount: currentBetAmount
-                                  })
-                              });
-                              
-                              if (response.ok) {
-                                  const gameData = await response.json();
-                                  console.log('✅ Game started successfully:', gameData);
-                                  
-                                                                     // Ocultar dashboard y mostrar juego
-                                   const gameSection = document.getElementById('gameSection');
-                                   const gameAreaWrapper = document.getElementById('gameAreaWrapper');
+                               // Fallback: conectar directamente al servidor
+                               const apiBase = window.location.hostname === 'localhost'
+                                   ? 'http://localhost:3000'
+                                   : 'https://back.pruebatupanel.com';
+                               
+                               const response = await fetch(apiBase + '/api/game/start', {
+                                   method: 'POST',
+                                   headers: {
+                                       'Content-Type': 'application/json',
+                                       'Authorization': 'Bearer ' + authManager.token
+                                   },
+                                   body: JSON.stringify({
+                                       betAmount: currentBetAmount
+                                   })
+                               });
+                               
+                               if (response.ok) {
+                                   const gameData = await response.json();
+                                   console.log('✅ Game started successfully:', gameData);
                                    
-                                   // Ocultar dashboard
-                                   if (gameSection) {
-                                       gameSection.style.display = 'none';
-                                   }
+                                   // Redirigir a la página del juego con los parámetros
+                                   const gameUrl = `/game.html?gameData=${encodeURIComponent(JSON.stringify(gameData))}&playerName=${encodeURIComponent(playerName)}&betAmount=${encodeURIComponent(currentBetAmount)}&userId=${encodeURIComponent(authManager.user.id)}`;
+                                   window.location.href = gameUrl;
                                    
-                                                        // Mostrar área de juego con transición suave
-                     if (gameAreaWrapper) {
-                         gameAreaWrapper.style.display = 'block';
-                         setTimeout(() => {
-                             gameAreaWrapper.classList.add('active');
-                             // Ocultar fondo animado
-                             const backgroundAnimated = document.querySelector('.background-animated');
-                             if (backgroundAnimated) {
-                                 backgroundAnimated.style.opacity = '0';
-                             }
-                         }, 10);
-                     }
-                                  
-                                  // Conectar al servidor del juego
-                                  const socketUrl = window.location.hostname === 'localhost'
-                                      ? 'http://localhost:3000'
-                                      : 'https://back.pruebatupanel.com';
-                                  
-                                  const socket = io(socketUrl, {
-                                      query: {
-                                          type: 'player',
-                                          userId: authManager.user.id,
-                                          gameId: gameData.id,
-                                          betAmount: currentBetAmount
-                                      }
-                                  });
-                                  
-                                  // Configurar eventos del socket
-                                  socket.on('connect', () => {
-                                      console.log('✅ Connected to game server');
-                                  });
-                                  
-                                  socket.on('disconnect', () => {
-                                      console.log('❌ Disconnected from game server');
-                                  });
-                                  
-                              } else {
-                                  const error = await response.json();
-                                  alert('❌ Error al iniciar el juego: ' + (error.message || 'Error desconocido'));
-                              }
-                          }
+                               } else {
+                                   const error = await response.json();
+                                   alert('❌ Error al iniciar el juego: ' + (error.message || 'Error desconocido'));
+                               }
+                           }
                           
                       } catch (error) {
                           console.error('❌ Error starting game:', error);
@@ -813,61 +768,7 @@
                           startButton.textContent = `JOIN GAME ($${currentBetAmount})`;
                       }
                   });
-                             }
-               
-                               // Función para conectar al servidor del juego
-                async function connectToGameServer(gameData, playerName) {
-                    console.log('🎮 Connecting to game server...');
-                    
-                    // Ocultar dashboard y mostrar juego
-                    const gameSection = document.getElementById('gameSection');
-                    const gameAreaWrapper = document.getElementById('gameAreaWrapper');
-                    
-                    // Ocultar dashboard
-                    if (gameSection) {
-                        gameSection.style.display = 'none';
-                    }
-                    
-                                         // Mostrar área de juego con transición suave
-                     if (gameAreaWrapper) {
-                         gameAreaWrapper.style.display = 'block';
-                         // Usar setTimeout para permitir que el display se aplique antes de la transición
-                         setTimeout(() => {
-                             gameAreaWrapper.classList.add('active');
-                             // Ocultar fondo animado
-                             const backgroundAnimated = document.querySelector('.background-animated');
-                             if (backgroundAnimated) {
-                                 backgroundAnimated.style.opacity = '0';
-                             }
-                         }, 10);
-                     }
-                   
-                   // Conectar al servidor del juego
-                   const socketUrl = window.location.hostname === 'localhost'
-                       ? 'http://localhost:3000'
-                       : 'https://back.pruebatupanel.com';
-                   
-                   const socket = io(socketUrl, {
-                       query: {
-                           type: 'player',
-                           userId: authManager.user.id,
-                           gameId: gameData.id,
-                           betAmount: currentBetAmount
-                       }
-                   });
-                   
-                   // Configurar eventos del socket
-                   socket.on('connect', () => {
-                       console.log('✅ Connected to game server');
-                   });
-                   
-                   socket.on('disconnect', () => {
-                       console.log('❌ Disconnected from game server');
-                   });
-                   
-                   // Hacer el socket disponible globalmente
-                   window.gameSocket = socket;
-               }
+                             
                
                // Botón para volver al dashboard
                const backToDashboardBtn = document.getElementById('backToDashboard');
