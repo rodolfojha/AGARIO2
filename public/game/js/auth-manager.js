@@ -154,19 +154,25 @@ class AuthManager {
     }
 
     updateUI() {
-        const loginSection = document.getElementById('loginSection');
-        const gameSection = document.getElementById('gameSection');
         const userName = document.getElementById('userName');
         
         if (this.isAuthenticated && this.user) {
-            if (loginSection) loginSection.style.display = 'none';
-            if (gameSection) gameSection.style.display = 'block';
-            if (userName) userName.textContent = this.user.name;
+            // Usuario autenticado - actualizar nombre y saldo
+            if (userName) {
+                userName.textContent = this.user.name || this.user.email || 'Usuario';
+            }
             this.updateBalanceDisplay();
-            console.log('🎮 UI updated for authenticated user');
+            console.log('🎮 UI updated for authenticated user:', this.user.name);
         } else {
-            if (loginSection) loginSection.style.display = 'block';
-            if (gameSection) gameSection.style.display = 'none';
+            // Usuario no autenticado - mostrar nombre por defecto
+            if (userName) {
+                userName.textContent = 'Invitado';
+            }
+            // Limpiar saldo
+            const availableBalance = document.getElementById('availableBalance');
+            if (availableBalance) {
+                availableBalance.textContent = '0.00';
+            }
             console.log('🔒 UI updated for guest user');
         }
     }

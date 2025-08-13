@@ -503,55 +503,126 @@
     <script src="game/js/canvas.js"></script>
     <script src="game/js/chat-client.js"></script>
     <script src="game/js/app-betting.js"></script>
-    <script>
-        window.onGoogleLibraryLoad = function() {
-            console.log('🔐 Google Sign-In SDK loaded');
-            const apiBase = window.location.hostname === 'localhost'
-                ? 'http://localhost:3000'
-                : 'https://back.pruebatupanel.com';
-            fetch(apiBase + '/api/config/google')
-                .then(response => response.json())
-                .then(config => {
-                    if (config.clientId) {
-                        initializeGoogleSignIn(config.clientId);
-                    } else {
-                        console.warn('⚠️ Google Client ID not configured');
-                    }
-                })
-                .catch(error => {
-                    console.error('❌ Failed to load Google config:', error);
-                });
-        };
-        function initializeGoogleSignIn(clientId) {
-            console.log('🔧 Initializing Google Sign-In with client ID:', clientId.substring(0, 20) + '...');
-            google.accounts.id.initialize({
-                client_id: clientId,
-                callback: handleGoogleSignIn
-            });
-            const googleBtn = document.getElementById('googleLoginBtn');
-            if (googleBtn) {
-                google.accounts.id.renderButton(googleBtn, {
-                    theme: 'outline',
-                    size: 'large',
-                    text: 'signin_with',
-                    shape: 'rectangular',
-                    width: 250
-                });
-            }
-        }
-        async function handleGoogleSignIn(response) {
-            console.log('🔐 Google Sign-In response received');
-            if (typeof authManager !== 'undefined') {
-                const success = await authManager.loginWithGoogleToken(response.credential);
-                if (success) {
-                    console.log('✅ Google login successful');
-                } else {
-                    console.error('❌ Google login failed');
-                }
-            } else {
-                console.error('❌ AuthManager not loaded');
-            }
-        }
+         <script>
+         // Inicializar AuthManager cuando se cargue la página
+         let authManager;
+         
+         window.onGoogleLibraryLoad = function() {
+             console.log('🔐 Google Sign-In SDK loaded');
+             const apiBase = window.location.hostname === 'localhost'
+                 ? 'http://localhost:3000'
+                 : 'https://back.pruebatupanel.com';
+             fetch(apiBase + '/api/config/google')
+                 .then(response => response.json())
+                 .then(config => {
+                     if (config.clientId) {
+                         initializeGoogleSignIn(config.clientId);
+                     } else {
+                         console.warn('⚠️ Google Client ID not configured');
+                     }
+                 })
+                 .catch(error => {
+                     console.error('❌ Failed to load Google config:', error);
+                 });
+         };
+         
+         function initializeGoogleSignIn(clientId) {
+             console.log('🔧 Initializing Google Sign-In with client ID:', clientId.substring(0, 20) + '...');
+             google.accounts.id.initialize({
+                 client_id: clientId,
+                 callback: handleGoogleSignIn
+             });
+             
+             // Configurar el botón de Google manualmente
+             const googleBtn = document.getElementById('googleLoginBtn');
+             if (googleBtn) {
+                 googleBtn.addEventListener('click', () => {
+                     console.log('🔐 Google button clicked');
+                     google.accounts.id.prompt();
+                 });
+             }
+         }
+         
+         async function handleGoogleSignIn(response) {
+             console.log('🔐 Google Sign-In response received');
+             if (typeof authManager !== 'undefined') {
+                 const success = await authManager.loginWithGoogleToken(response.credential);
+                 if (success) {
+                     console.log('✅ Google login successful');
+                     updateLoginButtons();
+                 } else {
+                     console.error('❌ Google login failed');
+                 }
+             } else {
+                 console.error('❌ AuthManager not loaded');
+             }
+         }
+         
+         // Función para actualizar la visibilidad de los botones de login
+         function updateLoginButtons() {
+             const devLoginBtn = document.getElementById('devLoginBtn');
+             const googleLoginBtn = document.getElementById('googleLoginBtn');
+             const logoutBtn = document.getElementById('logoutBtn');
+             
+             if (authManager && authManager.isAuthenticated) {
+                 // Usuario autenticado - mostrar logout, ocultar login
+                 if (devLoginBtn) devLoginBtn.style.display = 'none';
+                 if (googleLoginBtn) googleLoginBtn.style.display = 'none';
+                 if (logoutBtn) logoutBtn.style.display = 'block';
+             } else {
+                 // Usuario no autenticado - mostrar login, ocultar logout
+                 if (devLoginBtn) devLoginBtn.style.display = 'block';
+                 if (googleLoginBtn) googleLoginBtn.style.display = 'block';
+                 if (logoutBtn) logoutBtn.style.display = 'none';
+             }
+         }
+         
+         // Configurar event listeners cuando se cargue la página
+         document.addEventListener('DOMContentLoaded', function() {
+             console.log('🚀 Setting up login buttons...');
+             
+             // Botón Dev Login
+             const devLoginBtn = document.getElementById('devLoginBtn');
+             if (devLoginBtn) {
+                 devLoginBtn.addEventListener('click', async () => {
+                     console.log('🛠️ Dev login clicked');
+                     if (typeof authManager !== 'undefined') {
+                         const success = await authManager.devLogin();
+                         if (success) {
+                             console.log('✅ Dev login successful');
+                             updateLoginButtons();
+                         } else {
+                             console.error('❌ Dev login failed');
+                         }
+                     } else {
+                         console.error('❌ AuthManager not loaded');
+                     }
+                 });
+             }
+             
+             // Botón Logout
+             const logoutBtn = document.getElementById('logoutBtn');
+             if (logoutBtn) {
+                 logoutBtn.addEventListener('click', () => {
+                     console.log('👋 Logout clicked');
+                     if (typeof authManager !== 'undefined') {
+                         authManager.logout();
+                         updateLoginButtons();
+                     }
+                 });
+             }
+             
+             // Inicializar AuthManager
+             if (typeof AuthManager !== 'undefined') {
+                 authManager = new AuthManager();
+                 authManager.initialize().then(() => {
+                     console.log('✅ AuthManager initialized');
+                     updateLoginButtons();
+                 });
+             } else {
+                 console.error('❌ AuthManager class not found');
+             }
+         });
         window.addEventListener('error', function(e) {
             console.error('🚨 Global error:', e.error);
             const errorDiv = document.getElementById('errorMessage');
