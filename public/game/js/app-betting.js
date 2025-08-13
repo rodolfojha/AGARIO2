@@ -368,19 +368,33 @@ function setupTopUpModalHandlers() {
 
     createBtn.onclick = async () => {
         try {
+            console.log('🔄 Create payment button clicked');
             hideError();
             const amount = parseFloat(amountInput.value);
             const currency = currencySelect.value;
+            console.log('💰 Payment details:', { amount, currency });
+            
             if (!amount || amount < 5) {
+                console.log('❌ Amount validation failed:', amount);
                 showError('Minimum amount is $5');
                 return;
             }
             if (!authManager || !authManager.user) {
+                console.log('❌ Authentication check failed:', { authManager: !!authManager, user: authManager?.user });
                 showError('Not authenticated');
                 return;
             }
             
             console.log('💳 Creating NOWPayments payment:', { amount, currency, userId: authManager.user.id });
+            console.log('🌐 API Base URL:', getApiBaseUrl());
+            
+            const requestBody = {
+                action: 'create_payment',
+                amount,
+                currency,
+                userId: authManager.user.id
+            };
+            console.log('📤 Request body:', requestBody);
             
             const res = await fetch(`${getApiBaseUrl()}/api/payments/nowpayments`, {
                 method: 'POST',
@@ -388,27 +402,29 @@ function setupTopUpModalHandlers() {
                     'Content-Type': 'application/json',
                     ...(authManager ? authManager.getAuthHeaders() : {})
                 },
-                body: JSON.stringify({
-                    action: 'create_payment',
-                    amount,
-                    currency,
-                    userId: authManager.user.id
-                })
+                body: JSON.stringify(requestBody)
             });
             
+            console.log('📥 Response status:', res.status);
             const data = await res.json();
             console.log('💳 NOWPayments response:', data);
             
-            if (!data.success) throw new Error(data.error || 'Create payment failed');
+            if (!data.success) {
+                console.log('❌ Payment creation failed:', data.error);
+                throw new Error(data.error || 'Create payment failed');
+            }
             
             currentPaymentId = data.payment.id;
+            console.log('💾 Payment ID saved:', currentPaymentId);
             
             // Mostrar instrucciones de pago
+            console.log('🔄 Updating payment UI elements');
             payAmountEl.textContent = `${data.payment.pay_amount} ${data.payment.pay_currency.toUpperCase()}`;
             payAddressEl.textContent = data.payment.pay_address;
             qrImg.src = data.payment.qr_code_url;
             expEl.textContent = new Date(data.payment.expires_at).toLocaleString();
             
+            console.log('🔄 Switching to payment step');
             stepCreate.style.display = 'none';
             stepPay.style.display = 'block';
             
