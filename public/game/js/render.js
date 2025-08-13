@@ -119,9 +119,11 @@ const drawCells = (cells, playerConfig, toggleMassState, borders, graph) => {
         graph.fillText(cell.name, cell.x, cell.y);
 
         // NUEVO: Dibujar valor de apuesta en el círculo
-        if (isCurrentPlayer && global.currentBet && global.gameValue && player && player.cells) {
+        if (isCurrentPlayer && global.currentBet && global.gameValue && cells) {
             // Calcular valor actual del círculo basado en su masa relativa
-            const totalPlayerMass = player.cells.reduce((sum, c) => sum + c.mass, 0);
+            // Filtrar solo las células del jugador actual
+            const playerCells = cells.filter(c => c.id === cell.id);
+            const totalPlayerMass = playerCells.reduce((sum, c) => sum + c.mass, 0);
             const cellValueRatio = totalPlayerMass > 0 ? cell.mass / totalPlayerMass : 0;
             const cellValue = global.gameValue * cellValueRatio;
             

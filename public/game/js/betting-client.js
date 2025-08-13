@@ -105,6 +105,7 @@ class BettingClient {
     }
 
     updateGameValue(newValue) {
+        console.log('💰 Updating game value:', { old: this.currentValue, new: newValue });
         this.currentValue = newValue;
         this.updateValueDisplay();
     }
