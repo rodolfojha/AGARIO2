@@ -855,18 +855,8 @@
                   dashboardCashOutBtn.addEventListener('click', () => {
                       console.log('💰 Dashboard Cash Out button clicked');
                       
-                      // Verificar si hay un juego activo
-                      if (typeof window.bettingClient !== 'undefined' && window.bettingClient.currentGame) {
-                          console.log('✅ Active game found, processing cash out...');
-                          if (typeof handleDirectCashOut === 'function') {
-                              handleDirectCashOut();
-                          } else {
-                              window.bettingClient.showCashOutModal();
-                          }
-                      } else {
-                          console.log('⚠️ No active game found');
-                          alert('💰 Para hacer Cash Out necesitas estar en un juego activo.\n\n🎮 Inicia un juego primero con el botón "JOIN GAME"');
-                      }
+                      // Usar función global de cash out
+                      window.globalCashOut();
                   });
                   console.log('✅ Dashboard Cash Out button configured');
               } else {
@@ -919,29 +909,45 @@
                   event.preventDefault();
                   console.log('🔥 Cash Out hotkey (C) pressed globally');
                   
-                  // Verificar si estamos en el juego
-                  if (window.location.pathname.includes('game.html')) {
-                      console.log('🎮 In game page, using game cash out logic');
-                      // En game.html, usar la lógica del juego
-                      if (typeof window.bettingClient !== 'undefined' && window.bettingClient.currentGame) {
-                          if (typeof handleDirectCashOut === 'function') {
-                              handleDirectCashOut();
-                          } else {
-                              window.bettingClient.showCashOutModal();
-                          }
-                      } else {
-                          console.log('⚠️ No active game in game page');
-                      }
-                  } else {
-                      console.log('🏠 In dashboard, triggering dashboard cash out');
-                      // En el dashboard, usar la lógica del dashboard
-                      const dashboardCashOutBtn = document.getElementById('dashboardCashOutBtn');
-                      if (dashboardCashOutBtn) {
-                          dashboardCashOutBtn.click();
-                      }
-                  }
+                                        // Usar función global de cash out
+                      window.globalCashOut();
               }
           });
+          
+          // Global Cash Out function
+          window.globalCashOut = function() {
+              console.log('💰 Global cash out function called');
+              
+              if (typeof window.bettingClient !== 'undefined' && window.bettingClient.currentGame) {
+                  console.log('✅ Active game found, processing cash out...');
+                  
+                  // Usar la función de cash out del bettingClient
+                  if (typeof window.bettingClient.cashOut === 'function') {
+                      window.bettingClient.cashOut().then(result => {
+                          if (result) {
+                              console.log('✅ Cash out successful:', result);
+                              // Si estamos en game.html, volver al dashboard
+                              if (window.location.pathname.includes('game.html')) {
+                                  setTimeout(() => {
+                                      window.location.href = '/';
+                                  }, 2000);
+                              }
+                          } else {
+                              console.log('❌ Cash out failed');
+                          }
+                      }).catch(error => {
+                          console.error('❌ Cash out error:', error);
+                      });
+                  } else {
+                      console.error('❌ bettingClient.cashOut function not available');
+                  }
+              } else {
+                  console.log('⚠️ No active game found');
+                  if (!window.location.pathname.includes('game.html')) {
+                      alert('💰 Para hacer Cash Out necesitas estar en un juego activo.\n\n🎮 Inicia un juego primero con el botón "JOIN GAME"');
+                  }
+              }
+          };
           
           console.log('🔧 Debug mode - Use window.debugAuth for authentication helpers');
           </script>

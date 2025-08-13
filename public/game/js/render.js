@@ -118,6 +118,26 @@ const drawCells = (cells, playerConfig, toggleMassState, borders, graph) => {
         graph.strokeText(cell.name, cell.x, cell.y);
         graph.fillText(cell.name, cell.x, cell.y);
 
+        // NUEVO: Dibujar valor de apuesta en el círculo
+        if (isCurrentPlayer && global.currentBet && global.gameValue && player && player.cells) {
+            // Calcular valor actual del círculo basado en su masa relativa
+            const totalPlayerMass = player.cells.reduce((sum, c) => sum + c.mass, 0);
+            const cellValueRatio = totalPlayerMass > 0 ? cell.mass / totalPlayerMass : 0;
+            const cellValue = global.gameValue * cellValueRatio;
+            
+            // Mostrar valor debajo del nombre
+            const valueText = `$${cellValue.toFixed(2)}`;
+            const valueFontSize = Math.max(fontSize * 0.7, 10);
+            graph.font = 'bold ' + valueFontSize + 'px sans-serif';
+            graph.fillStyle = '#FFD700'; // Color dorado para el valor
+            graph.strokeStyle = '#000000';
+            graph.lineWidth = 2;
+            
+            const valueY = cell.y + fontSize * 0.6;
+            graph.strokeText(valueText, cell.x, valueY);
+            graph.fillText(valueText, cell.x, valueY);
+        }
+
         // Dibujar masa (si está habilitado)
         if (toggleMassState === 1) {
             graph.font = 'bold ' + Math.max(fontSize / 3 * 2, 10) + 'px sans-serif';
