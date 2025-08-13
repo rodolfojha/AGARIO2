@@ -870,6 +870,40 @@
                 }, 5000);
             }
         });
+        // Debug functions disponibles en producción también
+        window.debugAuth = {
+            checkAuth: () => {
+                console.log('🔍 Auth Status:', {
+                    authManager: typeof authManager !== 'undefined' ? 'loaded' : 'missing',
+                    isAuthenticated: authManager ? authManager.isAuthenticated : 'N/A',
+                    user: authManager ? authManager.user : 'N/A',
+                    token: authManager ? (authManager.token ? 'exists' : 'missing') : 'N/A'
+                });
+            },
+            forceLogin: () => {
+                if (typeof authManager !== 'undefined') {
+                    console.log('🛠️ Forcing dev login...');
+                    authManager.devLogin();
+                } else {
+                    console.log('❌ AuthManager not available');
+                }
+            },
+            checkLocalStorage: () => {
+                console.log('💾 LocalStorage:', {
+                    auth_token: localStorage.getItem('auth_token') ? 'exists' : 'missing',
+                    token_value: localStorage.getItem('auth_token') ? localStorage.getItem('auth_token').substring(0, 20) + '...' : 'N/A'
+                });
+            },
+            updateUI: () => {
+                if (typeof updateLoginButtons === 'function') {
+                    updateLoginButtons();
+                    console.log('🔄 UI updated');
+                } else {
+                    console.log('❌ updateLoginButtons function not found');
+                }
+            }
+        };
+        
         if (window.location.hostname === 'localhost') {
             window.debugBetting = {
                 checkGlobal: () => console.log('Global:', typeof global !== 'undefined' ? global : 'undefined'),
@@ -898,6 +932,8 @@
             };
             console.log('🔧 Development mode - Use window.debugBetting for helpers');
         }
+        
+        console.log('🔧 Debug mode - Use window.debugAuth for authentication helpers');
     </script>
          <script>
          // Verificar si Google SDK ya está cargado
