@@ -52,18 +52,32 @@
             background-color: transparent;
             border-radius: 9999px;
         }
-        /* Estilos para los botones de Join Game con efecto "gamer" */
-        .gamer-btn {
-            background-image: linear-gradient(to right, #fcd34d, #f97316, #fcd34d);
-            background-size: 200% auto;
-            transition: background-position 0.5s ease-out, transform 0.2s ease-in-out;
-            border: 2px solid rgba(0, 0, 0, 0.2);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-        }
-        .gamer-btn:hover {
-            background-position: right center;
-            transform: scale(1.02);
-        }
+                 /* Estilos para los botones de Join Game con efecto "gamer" */
+         .gamer-btn {
+             background-image: linear-gradient(to right, #fcd34d, #f97316, #fcd34d);
+             background-size: 200% auto;
+             transition: background-position 0.5s ease-out, transform 0.2s ease-in-out;
+             border: 2px solid rgba(0, 0, 0, 0.2);
+             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+         }
+         .gamer-btn:hover {
+             background-position: right center;
+             transform: scale(1.02);
+         }
+         
+         /* Estilos para los botones de apuestas */
+         .bet-button {
+             transition: all 0.3s ease;
+             border: 2px solid transparent;
+         }
+         .bet-button:hover {
+             transform: scale(1.05);
+             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+         }
+         .bet-button.bg-green-500 {
+             border-color: #10b981;
+             box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+         }
 
         /* Mantener estilos específicos de la aplicación */
         #gameAreaWrapper {
@@ -328,11 +342,11 @@
                                 </svg>
                             </button>
                         </div>
-                        <div class="flex space-x-2 mb-4">
-                            <button class="bg-yellow-400 text-black font-bold py-2 px-4 rounded-md hover:bg-yellow-500 transition-colors duration-300">$1</button>
-                            <button class="bg-yellow-400 text-black font-bold py-2 px-4 rounded-md hover:bg-yellow-500 transition-colors duration-300">$5</button>
-                            <button class="bg-yellow-400 text-black font-bold py-2 px-4 rounded-md hover:bg-yellow-500 transition-colors duration-300">$20</button>
-                        </div>
+                                                 <div class="flex space-x-2 mb-4">
+                             <button class="bet-button bg-yellow-400 text-black font-bold py-2 px-4 rounded-md hover:bg-yellow-500 transition-colors duration-300" data-bet="1">$1</button>
+                             <button class="bet-button bg-yellow-400 text-black font-bold py-2 px-4 rounded-md hover:bg-yellow-500 transition-colors duration-300" data-bet="5">$5</button>
+                             <button class="bet-button bg-yellow-400 text-black font-bold py-2 px-4 rounded-md hover:bg-yellow-500 transition-colors duration-300" data-bet="20">$20</button>
+                         </div>
                         <button id="startButton" class="w-full gamer-btn text-black font-bold py-4 px-4 rounded-full shadow-lg text-lg">
                             JOIN GAME
                         </button>
@@ -598,9 +612,155 @@
              }
          }
          
-         // Configurar event listeners cuando se cargue la página
-         document.addEventListener('DOMContentLoaded', function() {
-             console.log('🚀 Setting up login buttons...');
+                   // Configurar event listeners cuando se cargue la página
+          document.addEventListener('DOMContentLoaded', function() {
+              console.log('🚀 Setting up login buttons and betting functionality...');
+              
+              // Variables para el sistema de apuestas
+              let currentBetAmount = 1; // Valor por defecto
+              let activeBetButton = null;
+              
+              // Configurar botones de apuestas
+              const betButtons = document.querySelectorAll('.bet-button');
+              const startButton = document.getElementById('startButton');
+              
+              betButtons.forEach(button => {
+                  button.addEventListener('click', function() {
+                      // Remover clase activa de todos los botones
+                      betButtons.forEach(btn => {
+                          btn.classList.remove('bg-green-500', 'text-white');
+                          btn.classList.add('bg-yellow-400', 'text-black');
+                      });
+                      
+                      // Agregar clase activa al botón seleccionado
+                      this.classList.remove('bg-yellow-400', 'text-black');
+                      this.classList.add('bg-green-500', 'text-white');
+                      
+                      // Actualizar monto de apuesta
+                      currentBetAmount = parseFloat(this.getAttribute('data-bet'));
+                      activeBetButton = this;
+                      
+                      // Actualizar texto del botón JOIN GAME
+                      if (startButton) {
+                          startButton.textContent = `JOIN GAME ($${currentBetAmount})`;
+                      }
+                      
+                      console.log('💰 Selected bet amount:', currentBetAmount);
+                  });
+              });
+              
+              // Configurar botón JOIN GAME
+              if (startButton) {
+                  startButton.addEventListener('click', async function() {
+                      console.log('🎮 JOIN GAME button clicked');
+                      
+                      // Verificar si el usuario está autenticado
+                      if (!authManager || !authManager.isAuthenticated) {
+                          alert('⚠️ Por favor inicia sesión primero');
+                          return;
+                      }
+                      
+                      // Obtener nombre del jugador
+                      const playerNameInput = document.getElementById('playerNameInput');
+                      const playerName = playerNameInput ? playerNameInput.value.trim() : '';
+                      
+                      if (!playerName) {
+                          alert('⚠️ Por favor ingresa tu nombre de jugador');
+                          return;
+                      }
+                      
+                      // Verificar que se haya seleccionado una apuesta
+                      if (!activeBetButton) {
+                          alert('⚠️ Por favor selecciona un monto de apuesta');
+                          return;
+                      }
+                      
+                      console.log('🎯 Starting game with:', {
+                          playerName: playerName,
+                          betAmount: currentBetAmount,
+                          userId: authManager.user.id
+                      });
+                      
+                      try {
+                          // Deshabilitar botón durante el proceso
+                          startButton.disabled = true;
+                          startButton.textContent = '🔄 Conectando...';
+                          
+                          // Iniciar juego usando el sistema existente
+                          if (typeof window.startGameWithBetting === 'function') {
+                              // Usar la función existente del sistema
+                              const gameData = await bettingClient.startGame(currentBetAmount);
+                              window.startGameWithBetting('player', playerName, gameData);
+                          } else {
+                              // Fallback: conectar directamente al servidor
+                              const apiBase = window.location.hostname === 'localhost'
+                                  ? 'http://localhost:3000'
+                                  : 'https://back.pruebatupanel.com';
+                              
+                              const response = await fetch(apiBase + '/api/game/start', {
+                                  method: 'POST',
+                                  headers: {
+                                      'Content-Type': 'application/json',
+                                      'Authorization': 'Bearer ' + authManager.token
+                                  },
+                                  body: JSON.stringify({
+                                      betAmount: currentBetAmount
+                                  })
+                              });
+                              
+                              if (response.ok) {
+                                  const gameData = await response.json();
+                                  console.log('✅ Game started successfully:', gameData);
+                                  
+                                  // Ocultar dashboard y mostrar juego
+                                  const gameSection = document.getElementById('gameSection');
+                                  const gameAreaWrapper = document.getElementById('gameAreaWrapper');
+                                  
+                                  if (gameSection) gameSection.style.display = 'none';
+                                  if (gameAreaWrapper) {
+                                      gameAreaWrapper.style.display = 'block';
+                                      gameAreaWrapper.style.opacity = '1';
+                                  }
+                                  
+                                  // Conectar al servidor del juego
+                                  const socketUrl = window.location.hostname === 'localhost'
+                                      ? 'http://localhost:3000'
+                                      : 'https://back.pruebatupanel.com';
+                                  
+                                  const socket = io(socketUrl, {
+                                      query: {
+                                          type: 'player',
+                                          userId: authManager.user.id,
+                                          gameId: gameData.id,
+                                          betAmount: currentBetAmount
+                                      }
+                                  });
+                                  
+                                  // Configurar eventos del socket
+                                  socket.on('connect', () => {
+                                      console.log('✅ Connected to game server');
+                                  });
+                                  
+                                  socket.on('disconnect', () => {
+                                      console.log('❌ Disconnected from game server');
+                                  });
+                                  
+                              } else {
+                                  const error = await response.json();
+                                  alert('❌ Error al iniciar el juego: ' + (error.message || 'Error desconocido'));
+                              }
+                          }
+                          
+                      } catch (error) {
+                          console.error('❌ Error starting game:', error);
+                          alert('❌ Error al iniciar el juego: ' + error.message);
+                      } finally {
+                          // Restaurar botón
+                          startButton.disabled = false;
+                          startButton.textContent = `JOIN GAME ($${currentBetAmount})`;
+                      }
+                  });
+              }
              
              // Botón Dev Login
              const devLoginBtn = document.getElementById('devLoginBtn');
