@@ -65,16 +65,40 @@ class BettingClient {
     }
 
     async cashOut() {
-        if (!this.currentGame) return;
+        console.log('💰 Cash out called with:', {
+            currentGame: this.currentGame,
+            currentValue: this.currentValue,
+            globalGameValue: typeof global !== 'undefined' ? global.gameValue : 'undefined'
+        });
+        
+        if (!this.currentGame) {
+            console.error('❌ No current game');
+            return null;
+        }
+
+        // Usar global.gameValue si currentValue no está disponible
+        const valueToUse = this.currentValue || (typeof global !== 'undefined' ? global.gameValue : 0);
+        
+        if (!valueToUse || valueToUse <= 0) {
+            console.error('❌ No valid current value');
+            return null;
+        }
 
         try {
+            const requestData = {
+                gameId: this.currentGame.id,
+                currentValue: valueToUse
+            };
+            
+            console.log('📤 Sending cash out request:', requestData);
+            
             const response = await fetch(`${getApiBaseUrl()}/api/game/cashout`, {
                 method: 'POST',
-                headers: this.auth.getAuthHeaders(),
-                body: JSON.stringify({
-                    gameId: this.currentGame.id,
-                    currentValue: this.currentValue
-                })
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...this.auth.getAuthHeaders()
+                },
+                body: JSON.stringify(requestData)
             });
 
             const data = await response.json();
@@ -107,6 +131,12 @@ class BettingClient {
     updateGameValue(newValue) {
         console.log('💰 Updating game value:', { old: this.currentValue, new: newValue });
         this.currentValue = newValue;
+        
+        // También actualizar global.gameValue para mantener sincronización
+        if (typeof global !== 'undefined') {
+            global.gameValue = newValue;
+        }
+        
         this.updateValueDisplay();
     }
 
