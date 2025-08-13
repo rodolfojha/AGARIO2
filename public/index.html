@@ -808,6 +808,21 @@
                   });
               }
               
+              // Setup Add Funds button (NOWPayments)
+              const addBalanceBtn = document.getElementById('addBalanceBtn');
+              if (addBalanceBtn) {
+                  addBalanceBtn.addEventListener('click', () => {
+                      console.log('💳 Add Funds button clicked');
+                      const topUpModal = document.getElementById('topUpModal');
+                      if (topUpModal) {
+                          topUpModal.style.display = 'block';
+                          console.log('✅ Top-up modal opened');
+                      } else {
+                          console.error('❌ Top-up modal not found');
+                      }
+                  });
+              }
+              
               // Setup login buttons
               const devLoginBtn = document.getElementById('devLoginBtn');
               const logoutBtn = document.getElementById('logoutBtn');

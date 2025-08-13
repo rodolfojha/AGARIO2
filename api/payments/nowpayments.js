@@ -1,6 +1,6 @@
 // api/payments/nowpayments.js - Integración con NOWPayments.io
 
-const NOWPAYMENTS_API_KEY = 'JAYDJBQ-KWT46P1-J58XWCV-0DXZ7VK';
+const NOWPAYMENTS_API_KEY = '9Y86N0F-CB34G0D-KMB5ZAZ-JZR9J46';
 const NOWPAYMENTS_BASE_URL = 'https://api.nowpayments.io/v1';
 
 // Función para crear un pago
