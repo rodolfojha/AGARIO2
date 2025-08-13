@@ -845,31 +845,32 @@
                  });
              }
              
-             // Inicializar AuthManager si no está ya inicializado
-             if (typeof AuthManager !== 'undefined' && !authManager) {
-                 authManager = new AuthManager();
-                 authManager.initialize().then(() => {
-                     console.log('✅ AuthManager initialized');
-                     updateLoginButtons();
-                 });
-             } else if (authManager) {
-                 console.log('✅ AuthManager already exists, updating UI');
-                 updateLoginButtons();
-             } else {
-                 console.error('❌ AuthManager class not found');
-             }
+                           // Inicializar AuthManager
+              console.log('🔧 Initializing AuthManager...');
+              if (typeof AuthManager !== 'undefined') {
+                  try {
+                      // Crear nueva instancia de AuthManager
+                      authManager = new AuthManager();
+                      console.log('✅ AuthManager instance created');
+                      
+                      // Inicializar AuthManager
+                      authManager.initialize().then(() => {
+                          console.log('✅ AuthManager initialized successfully');
+                          updateLoginButtons();
+                      }).catch(error => {
+                          console.error('❌ Error initializing AuthManager:', error);
+                      });
+                  } catch (error) {
+                      console.error('❌ Error creating AuthManager instance:', error);
+                  }
+              } else {
+                  console.error('❌ AuthManager class not found');
+              }
          });
          
+         // Global error handler
          window.addEventListener('error', function(e) {
              console.error('🚨 Global error:', e.error);
-             const errorDiv = document.getElementById('errorMessage');
-             if (errorDiv) {
-                 errorDiv.textContent = 'Error: ' + (e.message || 'Unknown error');
-                 errorDiv.style.display = 'block';
-                 setTimeout(() => {
-                     errorDiv.style.display = 'none';
-                 }, 5000);
-             }
          });
         // Debug functions disponibles en producción también
         window.debugAuth = {
