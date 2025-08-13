@@ -412,7 +412,7 @@
                             <button id="addBalanceBtn" class="bg-green-500 text-white font-bold py-2 px-4 rounded-full hover:bg-green-600 transition-colors duration-300">
                                 Add Funds
                             </button>
-                            <button class="bg-purple-600 text-white font-bold py-2 px-4 rounded-full hover:bg-purple-700 transition-colors duration-300">
+                            <button id="dashboardCashOutBtn" class="bg-purple-600 text-white font-bold py-2 px-4 rounded-full hover:bg-purple-700 transition-colors duration-300">
                                 Cash Out
                             </button>
                 </div>
@@ -849,6 +849,30 @@
                   console.error('❌ Add Funds button not found');
               }
               
+              // Setup Cash Out button (Dashboard)
+              const dashboardCashOutBtn = document.getElementById('dashboardCashOutBtn');
+              if (dashboardCashOutBtn) {
+                  dashboardCashOutBtn.addEventListener('click', () => {
+                      console.log('💰 Dashboard Cash Out button clicked');
+                      
+                      // Verificar si hay un juego activo
+                      if (typeof window.bettingClient !== 'undefined' && window.bettingClient.currentGame) {
+                          console.log('✅ Active game found, processing cash out...');
+                          if (typeof handleDirectCashOut === 'function') {
+                              handleDirectCashOut();
+                          } else {
+                              window.bettingClient.showCashOutModal();
+                          }
+                      } else {
+                          console.log('⚠️ No active game found');
+                          alert('💰 Para hacer Cash Out necesitas estar en un juego activo.\n\n🎮 Inicia un juego primero con el botón "JOIN GAME"');
+                      }
+                  });
+                  console.log('✅ Dashboard Cash Out button configured');
+              } else {
+                  console.error('❌ Dashboard Cash Out button not found');
+              }
+              
               // Setup login buttons
               const devLoginBtn = document.getElementById('devLoginBtn');
               const logoutBtn = document.getElementById('logoutBtn');
@@ -881,6 +905,44 @@
               }
           });
           
+          // Global hotkey for Cash Out (C key)
+          document.addEventListener('keydown', function(event) {
+              // Solo procesar si no estamos escribiendo en un input/textarea
+              if (event.target.tagName.toLowerCase() === 'input' || 
+                  event.target.tagName.toLowerCase() === 'textarea' ||
+                  event.target.contentEditable === 'true') {
+                  return;
+              }
+              
+              // Tecla 'C' para Cash Out (keyCode 67 o key 'c'/'C')
+              if (event.key.toLowerCase() === 'c' || event.keyCode === 67) {
+                  event.preventDefault();
+                  console.log('🔥 Cash Out hotkey (C) pressed globally');
+                  
+                  // Verificar si estamos en el juego
+                  if (window.location.pathname.includes('game.html')) {
+                      console.log('🎮 In game page, using game cash out logic');
+                      // En game.html, usar la lógica del juego
+                      if (typeof window.bettingClient !== 'undefined' && window.bettingClient.currentGame) {
+                          if (typeof handleDirectCashOut === 'function') {
+                              handleDirectCashOut();
+                          } else {
+                              window.bettingClient.showCashOutModal();
+                          }
+                      } else {
+                          console.log('⚠️ No active game in game page');
+                      }
+                  } else {
+                      console.log('🏠 In dashboard, triggering dashboard cash out');
+                      // En el dashboard, usar la lógica del dashboard
+                      const dashboardCashOutBtn = document.getElementById('dashboardCashOutBtn');
+                      if (dashboardCashOutBtn) {
+                          dashboardCashOutBtn.click();
+                      }
+                  }
+              }
+          });
+          
           console.log('🔧 Debug mode - Use window.debugAuth for authentication helpers');
           </script>
      <script>
@@ -889,7 +951,7 @@
              console.log('✅ Google SDK already loaded');
              if (typeof window.onGoogleLibraryLoad === 'function') {
                  window.onGoogleLibraryLoad();
-             } else {
+        } else {
                  console.log('⏳ Waiting for onGoogleLibraryLoad function...');
              }
          } else {
@@ -902,8 +964,8 @@
                  }
              });
          }
-     </script>
-    
+    </script>
+
     <!-- Script para las animaciones de los círculos -->
     <script>
         window.onload = function() {
