@@ -145,10 +145,11 @@ function handleRoomConfig(req, res) {
   }
 
   // Importar configuración compartida
-  const { getCurrentRoomConfig, updateRoomConfig } = require('./config.js');
+  const { getCurrentRoomConfig, updateRoomConfig, reloadConfig } = require('./config.js');
 
   if (req.method === 'GET') {
-    const config = getCurrentRoomConfig();
+    // Recargar configuración desde archivo para asegurar que esté actualizada
+    const config = reloadConfig();
     return res.json({ success: true, config: config });
   } else if (req.method === 'POST' || req.method === 'PUT') {
     const { roomType } = req.body;

@@ -51,9 +51,10 @@ function handleGameStart(req, res) {
   }
 
   // Importar configuración compartida
-  const { getCurrentRoomSettings } = require('./config.js');
+  const { getCurrentRoomSettings, reloadConfig } = require('./config.js');
   
-  // Obtener configuración actual de la sala
+  // Recargar configuración desde archivo y obtener configuración actual de la sala
+  reloadConfig();
   const roomSettings = getCurrentRoomSettings();
   
   // Generar datos del juego
