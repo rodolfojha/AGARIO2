@@ -5,17 +5,19 @@ const express = require('express');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
-const SAT = require('sat');
 
 const gameLogic = require('./game-logic');
 const loggingRepositry = require('./repositories/logging-repository');
 const chatRepository = require('./repositories/chat-repository');
-const config = require('../../config');
-const util = require('./lib/util');
-const mapUtils = require('./map/map');
+const config = require('../config');
+const map = require('./map/map');
+const SAT = require('sat');
+const Vector = SAT.Vector;
+const roomSync = require('./room-sync');
 const {getPosition} = require("./lib/entityUtils");
+const util = require('./lib/util');
 
-let map = new mapUtils.Map(config);
+let map = new map.Map(config);
 
 let sockets = {};
 let spectators = [];
@@ -24,9 +26,14 @@ const INIT_MASS_LOG = util.mathLog(config.defaultPlayerMass, config.slowBase);
 let leaderboard = [];
 let leaderboardChanged = false;
 
-const Vector = SAT.Vector;
-
 app.use(express.static(__dirname + '/../client'));
+
+// Cargar configuración de sala al iniciar el servidor
+roomSync.loadRoomConfigFromAPI().then(() => {
+    console.log('🎮 Room configuration loaded');
+}).catch(err => {
+    console.log('ℹ️ Using default room configuration');
+});
 
 io.on('connection', function (socket) {
     let type = socket.handshake.query.type;
