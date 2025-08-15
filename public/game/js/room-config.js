@@ -95,10 +95,25 @@ async function loadRoomConfig() {
         
         if (response.ok) {
             const result = await response.json();
-            if (result.success && result.roomSize && ROOM_CONFIGS[result.roomSize]) {
-                currentRoomConfig = result.roomSize;
+            if (result.success && result.config && result.config.currentRoom && ROOM_CONFIGS[result.config.currentRoom]) {
+                currentRoomConfig = result.config.currentRoom;
                 console.log('✅ Configuración de sala cargada:', ROOM_CONFIGS[currentRoomConfig].name);
                 return true;
+            }
+        }
+        
+        // Intentar cargar desde localStorage como fallback
+        const savedConfig = localStorage.getItem('roomConfig');
+        if (savedConfig) {
+            try {
+                const config = JSON.parse(savedConfig);
+                if (config.currentRoom && ROOM_CONFIGS[config.currentRoom]) {
+                    currentRoomConfig = config.currentRoom;
+                    console.log('✅ Configuración de sala cargada desde localStorage:', ROOM_CONFIGS[currentRoomConfig].name);
+                    return true;
+                }
+            } catch (e) {
+                console.error('❌ Error parsing localStorage config:', e);
             }
         }
         
