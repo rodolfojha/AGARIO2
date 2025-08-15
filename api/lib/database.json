@@ -1,0 +1,28 @@
+{
+  "users": {
+    "google-1755067645247-victoradrian95": {
+      "id": "google-1755067645247-victoradrian95",
+      "email": "victoradrian95@gmail.com",
+      "name": "Victor Adrian",
+      "balance_available": 100,
+      "balance_locked": 0,
+      "created_at": "2025-08-13T06:47:25.247Z",
+      "last_login": "2025-08-13T06:47:25.249Z"
+    }
+  },
+  "games": {},
+  "transactions": {
+    "tx_1755067645249_l41he2xn3": {
+      "id": "tx_1755067645249_l41he2xn3",
+      "userId": "google-1755067645247-victoradrian95",
+      "type": "deposit",
+      "amount": 100,
+      "description": "Balance agregado manualmente - Script de recarga",
+      "timestamp": "2025-08-13T06:47:25.249Z",
+      "metadata": {
+        "method": "manual_script",
+        "admin_action": true
+      }
+    }
+  }
+}
