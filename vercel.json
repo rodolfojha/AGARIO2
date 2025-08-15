@@ -6,6 +6,10 @@
       "dest": "/api/admin.js"
     },
     {
+      "src": "/api/game/(.*)",
+      "dest": "/api/game.js"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
     }
