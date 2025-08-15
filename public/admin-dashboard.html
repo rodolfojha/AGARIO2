@@ -198,7 +198,7 @@
                     <div class="p-4 border rounded-lg">
                         <h3 class="font-semibold mb-3">Asignar Administrador</h3>
                         <div class="space-y-3">
-                            <input type="email" id="adminEmail" placeholder="Email del usuario" 
+                            <input type="email" id="assignAdminEmail" placeholder="Email del usuario" 
                                    class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                             <div class="flex space-x-2">
                                 <button onclick="assignAdmin('grant')" class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
@@ -520,7 +520,7 @@
 
         // Asignar administrador
         async function assignAdmin(action) {
-            const email = document.getElementById('adminEmail').value.trim();
+            const email = document.getElementById('assignAdminEmail').value.trim();
             
             if (!email) {
                 showToast('Por favor ingresa un email', 'error');
@@ -540,7 +540,7 @@
                 if (response.ok) {
                     const data = await response.json();
                     showToast(data.message, 'success');
-                    document.getElementById('adminEmail').value = '';
+                    document.getElementById('assignAdminEmail').value = '';
                     document.getElementById('adminStatus').innerHTML = `
                         <p class="text-green-600">✅ ${data.message}</p>
                     `;
