@@ -601,7 +601,7 @@
               if (!authManager || !authManager.isAuthenticated) return;
               
               try {
-                  const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://back.pruebatupanel.com';
+                  const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : `https://${window.location.hostname}`;
                   const response = await fetch(apiBase + '/api/admin/check-status', {
                       headers: {
                           'Authorization': 'Bearer ' + authManager.token
@@ -632,7 +632,7 @@
           // Google Sign-In functions
           window.onGoogleLibraryLoad = function() {
               console.log('🔐 Google Sign-In SDK loaded');
-              const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://back.pruebatupanel.com';
+              const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : `https://${window.location.hostname}`;
               fetch(apiBase + '/api/config/google')
                   .then(response => response.json())
                   .then(config => {
@@ -826,7 +826,7 @@
                                   throw new Error('No se pudo iniciar el juego');
                               }
                           } else {
-                              const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://back.pruebatupanel.com';
+                              const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : `https://${window.location.hostname}`;
                               const response = await fetch(apiBase + '/api/game/start', {
                                   method: 'POST',
                                   headers: {

@@ -269,7 +269,7 @@
     <script>
         // Variables globales
         let authManager = null;
-        const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://back.pruebatupanel.com';
+        const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : `https://${window.location.hostname}`;
 
         // Inicialización
         document.addEventListener('DOMContentLoaded', function() {
