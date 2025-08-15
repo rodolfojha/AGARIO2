@@ -129,6 +129,21 @@
         // Verificar si ya hay administradores
         async function checkAdminStatus() {
             try {
+                // Primero probar si las APIs funcionan
+                const testResponse = await fetch(apiBase + '/api/admin/test');
+                if (!testResponse.ok) {
+                    console.log('❌ Admin APIs no están disponibles');
+                    document.getElementById('setupStatus').innerHTML = `
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+                            <p class="text-red-700 text-sm">
+                                Las APIs de administración no están disponibles. Verifica que el servidor esté funcionando.
+                            </p>
+                        </div>
+                    `;
+                    return;
+                }
+
                 const response = await fetch(apiBase + '/api/admin/check-status');
                 
                 if (response.ok) {
