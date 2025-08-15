@@ -159,21 +159,22 @@ const drawCells = (cells, playerConfig, toggleMassState, borders, graph) => {
         graph.fillText(cell.name, cell.x, cell.y);
 
         // NUEVO: Dibujar valor de apuesta en el círculo
-        if (isCurrentPlayer && (global.currentBet || global.gameValue || (typeof window !== 'undefined' && window.bettingClient && window.bettingClient.currentValue))) {
+        if (isCurrentPlayer) {
             try {
-                const { currentValue } = getBettingValues();
+                const { currentValue, currentBet } = getBettingValues();
                 
-                // Calcular valor actual del círculo basado en su masa relativa
-                // Filtrar solo las células del jugador actual
-                const playerCells = cells.filter(c => c.id === cell.id);
-                const totalPlayerMass = playerCells.reduce((sum, c) => sum + (c.mass || 0), 0);
-                const cellValueRatio = totalPlayerMass > 0 ? (cell.mass || 0) / totalPlayerMass : 0;
-                const cellValue = currentValue * cellValueRatio;
+                // Usar el valor de la apuesta inicial como base
+                let displayValue = currentBet;
                 
-                // Verificar que cellValue es un número válido
-                if (isFinite(cellValue) && cellValue > 0) {
+                // Si hay un valor actual diferente, usarlo
+                if (currentValue > 0 && currentValue !== currentBet) {
+                    displayValue = currentValue;
+                }
+                
+                // Verificar que displayValue es un número válido y mayor que 0
+                if (isFinite(displayValue) && displayValue > 0) {
                     // Mostrar valor debajo del nombre
-                    const valueText = `$${cellValue.toFixed(2)}`;
+                    const valueText = `$${displayValue.toFixed(2)}`;
                     const valueFontSize = Math.max(fontSize * 0.7, 10);
                     graph.font = 'bold ' + valueFontSize + 'px sans-serif';
                     graph.fillStyle = '#FFD700'; // Color dorado para el valor
