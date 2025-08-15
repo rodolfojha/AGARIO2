@@ -36,6 +36,7 @@ class Database {
                             total_wagered: 0,
                             total_won: 0,
                             games_played: 0,
+                            is_admin: true,
                             created_at: new Date().toISOString(),
                             last_login: new Date().toISOString()
                         }
@@ -96,6 +97,7 @@ class Database {
             total_wagered: userData.total_wagered || 0,
             total_won: userData.total_won || 0,
             games_played: userData.games_played || 0,
+            is_admin: userData.is_admin || false,
             created_at: userData.created_at || new Date().toISOString(),
             last_login: new Date().toISOString(),
             ...userData

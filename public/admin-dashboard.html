@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Administración - Agar.io Betting</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .admin-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .room-card {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .system-card {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-crown text-2xl"></i>
+                    <h1 class="text-2xl font-bold">Dashboard de Administración</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="adminName" class="text-sm">Cargando...</span>
+                    <button onclick="logout()" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Cerrar Sesión
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8">
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card text-white rounded-lg p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-75">Usuarios Totales</p>
+                        <p class="text-3xl font-bold" id="totalUsers">-</p>
+                    </div>
+                    <i class="fas fa-users text-4xl opacity-50"></i>
+                </div>
+            </div>
+            
+            <div class="admin-card text-white rounded-lg p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-75">Juegos Activos</p>
+                        <p class="text-3xl font-bold" id="activeGames">-</p>
+                    </div>
+                    <i class="fas fa-gamepad text-4xl opacity-50"></i>
+                </div>
+            </div>
+            
+            <div class="room-card text-white rounded-lg p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-75">Balance Total</p>
+                        <p class="text-3xl font-bold" id="totalBalance">-</p>
+                    </div>
+                    <i class="fas fa-dollar-sign text-4xl opacity-50"></i>
+                </div>
+            </div>
+            
+            <div class="system-card text-white rounded-lg p-6 card-hover">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm opacity-75">Uptime (min)</p>
+                        <p class="text-3xl font-bold" id="uptime">-</p>
+                    </div>
+                    <i class="fas fa-server text-4xl opacity-50"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Sections -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Room Configuration -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-800">
+                        <i class="fas fa-cog mr-2"></i>Configuración de Salas
+                    </h2>
+                    <button onclick="loadRoomConfig()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-sync-alt mr-2"></i>Actualizar
+                    </button>
+                </div>
+                
+                <div id="roomConfigStatus" class="mb-4 p-4 rounded-lg bg-gray-100">
+                    <p class="text-gray-600">Cargando configuración...</p>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                            <h3 class="font-semibold">Sala Pequeña</h3>
+                            <p class="text-sm text-gray-600">2000x2000 - 20-30 jugadores</p>
+                        </div>
+                        <button onclick="setRoomConfig('small')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
+                            Seleccionar
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                            <h3 class="font-semibold">Sala Mediana</h3>
+                            <p class="text-sm text-gray-600">3000x3000 - 50-80 jugadores</p>
+                        </div>
+                        <button onclick="setRoomConfig('medium')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
+                            Seleccionar
+                        </button>
+                    </div>
+                    
+                    <div class="flex items-center justify-between p-4 border rounded-lg">
+                        <div>
+                            <h3 class="font-semibold">Sala Grande</h3>
+                            <p class="text-sm text-gray-600">4000x4000 - 100-150 jugadores</p>
+                        </div>
+                        <button onclick="setRoomConfig('large')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
+                            Seleccionar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Management -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-gray-800">
+                        <i class="fas fa-user-shield mr-2"></i>Gestión de Administradores
+                    </h2>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="p-4 border rounded-lg">
+                        <h3 class="font-semibold mb-3">Asignar Administrador</h3>
+                        <div class="space-y-3">
+                            <input type="email" id="adminEmail" placeholder="Email del usuario" 
+                                   class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <div class="flex space-x-2">
+                                <button onclick="assignAdmin('grant')" class="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors">
+                                    <i class="fas fa-plus mr-2"></i>Asignar
+                                </button>
+                                <button onclick="assignAdmin('revoke')" class="flex-1 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors">
+                                    <i class="fas fa-minus mr-2"></i>Revocar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="adminStatus" class="p-4 rounded-lg bg-gray-100">
+                        <p class="text-gray-600">Ingresa un email para gestionar permisos</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Stats -->
+        <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-xl font-bold text-gray-800">
+                    <i class="fas fa-chart-line mr-2"></i>Estadísticas del Sistema
+                </h2>
+                <button onclick="loadStats()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                    <i class="fas fa-sync-alt mr-2"></i>Actualizar
+                </button>
+            </div>
+            
+            <div id="systemStats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-blue-600" id="activeUsers">-</div>
+                    <div class="text-sm text-gray-600">Usuarios Activos (24h)</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-green-600" id="totalWagered">-</div>
+                    <div class="text-sm text-gray-600">Total Apostado</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-purple-600" id="totalWon">-</div>
+                    <div class="text-sm text-gray-600">Total Ganado</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-red-600" id="profit">-</div>
+                    <div class="text-sm text-gray-600">Beneficio</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-indigo-600" id="memoryUsed">-</div>
+                    <div class="text-sm text-gray-600">Memoria Usada (MB)</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-orange-600" id="dbSize">-</div>
+                    <div class="text-sm text-gray-600">Tamaño BD (KB)</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span id="toastMessage">Operación exitosa</span>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let authManager = null;
+        const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://back.pruebatupanel.com';
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeAuth();
+        });
+
+        // Sistema de autenticación
+        function initializeAuth() {
+            // Obtener token del localStorage
+            const token = localStorage.getItem('authToken');
+            const userData = localStorage.getItem('userData');
+            
+            if (token && userData) {
+                authManager = {
+                    token: token,
+                    user: JSON.parse(userData),
+                    isAuthenticated: true
+                };
+                
+                document.getElementById('adminName').textContent = authManager.user.name;
+                loadStats();
+                loadRoomConfig();
+            } else {
+                // Redirigir al login si no hay token
+                window.location.href = '/';
+            }
+        }
+
+        // Cargar estadísticas
+        async function loadStats() {
+            try {
+                const response = await fetch(apiBase + '/api/admin/stats', {
+                    headers: {
+                        'Authorization': 'Bearer ' + authManager.token
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateStatsDisplay(data.stats);
+                } else {
+                    showToast('Error al cargar estadísticas', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                showToast('Error de conexión', 'error');
+            }
+        }
+
+        // Actualizar display de estadísticas
+        function updateStatsDisplay(stats) {
+            document.getElementById('totalUsers').textContent = stats.users.total;
+            document.getElementById('activeGames').textContent = stats.games.active;
+            document.getElementById('totalBalance').textContent = '$' + stats.balance.total;
+            document.getElementById('uptime').textContent = stats.system.uptime;
+            
+            document.getElementById('activeUsers').textContent = stats.users.active;
+            document.getElementById('totalWagered').textContent = '$' + stats.balance.totalWagered;
+            document.getElementById('totalWon').textContent = '$' + stats.balance.totalWon;
+            document.getElementById('profit').textContent = '$' + stats.balance.profit;
+            document.getElementById('memoryUsed').textContent = stats.system.memory.used;
+            document.getElementById('dbSize').textContent = stats.system.dbFileSize;
+        }
+
+        // Cargar configuración de salas
+        async function loadRoomConfig() {
+            try {
+                const response = await fetch(apiBase + '/api/admin/room-config', {
+                    headers: {
+                        'Authorization': 'Bearer ' + authManager.token
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateRoomConfigDisplay(data.config);
+                } else {
+                    showToast('Error al cargar configuración de salas', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading room config:', error);
+                showToast('Error de conexión', 'error');
+            }
+        }
+
+        // Actualizar display de configuración de salas
+        function updateRoomConfigDisplay(config) {
+            const statusDiv = document.getElementById('roomConfigStatus');
+            const currentRoom = config.currentRoom;
+            const roomInfo = config.configs[currentRoom];
+            
+            statusDiv.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-semibold">Sala Actual: ${roomInfo.name}</p>
+                        <p class="text-sm text-gray-600">${roomInfo.dimensions} - ${roomInfo.capacity}</p>
+                    </div>
+                    <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                        Activa
+                    </span>
+                </div>
+            `;
+        }
+
+        // Configurar sala
+        async function setRoomConfig(roomType) {
+            try {
+                const response = await fetch(apiBase + '/api/admin/room-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + authManager.token
+                    },
+                    body: JSON.stringify({ roomType })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showToast(data.message, 'success');
+                    loadRoomConfig();
+                } else {
+                    const error = await response.json();
+                    showToast(error.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error setting room config:', error);
+                showToast('Error de conexión', 'error');
+            }
+        }
+
+        // Asignar administrador
+        async function assignAdmin(action) {
+            const email = document.getElementById('adminEmail').value.trim();
+            
+            if (!email) {
+                showToast('Por favor ingresa un email', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(apiBase + '/api/admin/assign-admin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + authManager.token
+                    },
+                    body: JSON.stringify({ targetEmail: email, action })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showToast(data.message, 'success');
+                    document.getElementById('adminEmail').value = '';
+                    document.getElementById('adminStatus').innerHTML = `
+                        <p class="text-green-600">✅ ${data.message}</p>
+                    `;
+                } else {
+                    const error = await response.json();
+                    showToast(error.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error assigning admin:', error);
+                showToast('Error de conexión', 'error');
+            }
+        }
+
+        // Mostrar toast
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            
+            // Cambiar color según tipo
+            if (type === 'error') {
+                toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50';
+            } else {
+                toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50';
+            }
+            
+            // Mostrar toast
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Ocultar toast
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+            }, 3000);
+        }
+
+        // Cerrar sesión
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userData');
+            window.location.href = '/';
+        }
+
+        // Auto-refresh cada 30 segundos
+        setInterval(() => {
+            loadStats();
+        }, 30000);
+    </script>
+</body>
+</html>

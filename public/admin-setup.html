@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración de Administrador - Agar.io Betting</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .setup-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-md w-full space-y-8">
+            <!-- Header -->
+            <div class="text-center">
+                <div class="setup-card text-white rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-crown text-3xl"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-900">Configuración de Administrador</h2>
+                <p class="mt-2 text-sm text-gray-600">
+                    Configura el primer administrador del sistema
+                </p>
+            </div>
+
+            <!-- Setup Form -->
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <div id="setupStatus" class="mb-6 p-4 rounded-lg bg-blue-50 border border-blue-200">
+                    <div class="flex items-center">
+                        <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                        <p class="text-blue-700 text-sm">
+                            Esta página solo funciona si no hay administradores configurados en el sistema.
+                        </p>
+                    </div>
+                </div>
+
+                <form id="setupForm" class="space-y-6">
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700">
+                            Email del Administrador
+                        </label>
+                        <input type="email" id="email" name="email" required
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="admin@ejemplo.com">
+                    </div>
+
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700">
+                            Nombre del Administrador
+                        </label>
+                        <input type="text" id="name" name="name" required
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Administrador Principal">
+                    </div>
+
+                    <div>
+                        <label for="googleId" class="block text-sm font-medium text-gray-700">
+                            Google ID (opcional)
+                        </label>
+                        <input type="text" id="googleId" name="googleId"
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                               placeholder="Dejar vacío si no tienes Google ID">
+                        <p class="mt-1 text-xs text-gray-500">
+                            Si tienes un Google ID, puedes ingresarlo para vincular la cuenta de Google
+                        </p>
+                    </div>
+
+                    <div>
+                        <button type="submit" 
+                                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                            <i class="fas fa-crown mr-2"></i>
+                            Configurar Administrador
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-6 text-center">
+                    <a href="/" class="text-sm text-blue-600 hover:text-blue-500">
+                        <i class="fas fa-arrow-left mr-1"></i>
+                        Volver al Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-info-circle mr-2"></i>Instrucciones
+                </h3>
+                <div class="space-y-3 text-sm text-gray-600">
+                    <div class="flex items-start">
+                        <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                        <p>Esta página solo funciona si no hay administradores en el sistema</p>
+                    </div>
+                    <div class="flex items-start">
+                        <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                        <p>El administrador tendrá acceso completo al dashboard de administración</p>
+                    </div>
+                    <div class="flex items-start">
+                        <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                        <p>Puedes configurar administradores adicionales desde el dashboard</p>
+                    </div>
+                    <div class="flex items-start">
+                        <i class="fas fa-exclamation-triangle text-yellow-500 mr-2 mt-1"></i>
+                        <p>Una vez configurado, esta página no será accesible</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span id="toastMessage">Operación exitosa</span>
+        </div>
+    </div>
+
+    <script>
+        const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://back.pruebatupanel.com';
+
+        // Verificar si ya hay administradores
+        async function checkAdminStatus() {
+            try {
+                const response = await fetch(apiBase + '/api/admin/check-status');
+                
+                if (response.ok) {
+                    // Si hay respuesta, significa que ya hay administradores
+                    window.location.href = '/';
+                    return;
+                }
+            } catch (error) {
+                // Error significa que no hay administradores, continuar
+                console.log('No hay administradores configurados, continuando...');
+            }
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('setupForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const name = document.getElementById('name').value.trim();
+            const googleId = document.getElementById('googleId').value.trim();
+            
+            if (!email || !name) {
+                showToast('Por favor completa todos los campos requeridos', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(apiBase + '/api/admin/setup-first-admin', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        name: name,
+                        googleId: googleId || null
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showToast(data.message, 'success');
+                    
+                    // Redirigir al dashboard después de 2 segundos
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                } else {
+                    const error = await response.json();
+                    showToast(error.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error setting up admin:', error);
+                showToast('Error de conexión', 'error');
+            }
+        });
+
+        // Mostrar toast
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.textContent = message;
+            
+            // Cambiar color según tipo
+            if (type === 'error') {
+                toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50';
+            } else {
+                toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50';
+            }
+            
+            // Mostrar toast
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Ocultar toast
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+            }, 5000);
+        }
+
+        // Verificar estado al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAdminStatus();
+        });
+    </script>
+</body>
+</html>
