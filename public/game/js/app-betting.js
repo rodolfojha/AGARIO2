@@ -238,9 +238,9 @@ document.body.appendChild(refreshBtn);
 
     const spectateButton = document.getElementById('spectateButton');
     if (spectateButton) {
-        spectateButton.onclick = () => {
+        spectateButton.onclick = async () => {
             console.log('👁️ Starting spectator mode');
-            startGameWithBetting('spectator', '', null);
+            await startGameWithBetting('spectator', '', null);
         };
     }
 
@@ -599,7 +599,7 @@ async function handleStartGame() {
         
         if (game) {
             console.log('🚀 Launching game...');
-            startGameWithBetting('player', playerName, game);
+            await startGameWithBetting('player', playerName, game);
         } else {
             console.log('❌ Failed to start game');
         }
@@ -618,11 +618,53 @@ function validNick(nickname) {
 }
 
 // Función para iniciar juego con apuestas
-function startGameWithBetting(type, playerName, gameData) {
+async function startGameWithBetting(type, playerName, gameData) {
     console.log('🚀 Starting game:', { type, playerName, gameData });
     
     // NUEVO: Limpiar juego anterior antes de empezar
     cleanupPreviousGame();
+    
+    // OBTENER CONFIGURACIÓN DEL SERVIDOR
+    try {
+        console.log('🔧 Obteniendo configuración de sala del servidor...');
+        const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : `https://${window.location.hostname}`;
+        
+        const response = await fetch(apiBase + '/api/admin/room-config', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (response.ok) {
+            const configData = await response.json();
+            console.log('✅ Configuración obtenida del servidor:', configData);
+            
+            // Aplicar configuración al juego
+            if (configData.config && configData.config.currentRoom) {
+                const roomType = configData.config.currentRoom;
+                const roomSettings = configData.config.configs[roomType];
+                
+                console.log('🎮 Aplicando configuración de sala:', roomType, roomSettings);
+                
+                // Actualizar dimensiones del juego
+                global.game.width = roomSettings.width;
+                global.game.height = roomSettings.height;
+                
+                // Guardar configuración en localStorage para persistencia
+                localStorage.setItem('roomConfig', JSON.stringify(configData.config));
+                
+                console.log('📐 Dimensiones del juego actualizadas:', {
+                    width: global.game.width,
+                    height: global.game.height
+                });
+            }
+        } else {
+            console.warn('⚠️ No se pudo obtener configuración del servidor, usando configuración por defecto');
+        }
+    } catch (error) {
+        console.error('❌ Error obteniendo configuración:', error);
+    }
     
     global.playerName = playerName;
     global.playerType = type;
