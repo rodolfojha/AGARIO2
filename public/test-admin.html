@@ -110,21 +110,21 @@
                 let response, data;
                 
                 switch(type) {
-                    case 'test':
-                        response = await fetch(apiBase + '/api/admin/test');
-                        data = await response.json();
-                        addResult('✅ Test API', data);
-                        break;
+                                         case 'test':
+                         response = await fetch(apiBase + '/api/test');
+                         data = await response.json();
+                         addResult('✅ Test API', data);
+                         break;
                         
-                    case 'login':
-                        response = await fetch(apiBase + '/api/admin/login', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                email: 'rodolfoalva1345@gmail.com',
-                                password: 'admin123'
-                            })
-                        });
+                                         case 'login':
+                         response = await fetch(apiBase + '/api/login', {
+                             method: 'POST',
+                             headers: { 'Content-Type': 'application/json' },
+                             body: JSON.stringify({
+                                 email: 'rodolfoalva1345@gmail.com',
+                                 password: 'admin123'
+                             })
+                         });
                         data = await response.json();
                         if (data.success) {
                             currentToken = data.token;
@@ -151,9 +151,9 @@
                             addResult('❌ Stats', { error: 'No hay token. Haz login primero.' });
                             return;
                         }
-                        response = await fetch(apiBase + '/api/admin/stats', {
-                            headers: { 'Authorization': 'Bearer ' + currentToken }
-                        });
+                                                 response = await fetch(apiBase + '/api/stats', {
+                             headers: { 'Authorization': 'Bearer ' + currentToken }
+                         });
                         data = await response.json();
                         addResult('✅ Stats', data);
                         break;
@@ -184,11 +184,11 @@
             const password = document.getElementById('testPassword').value;
             
             try {
-                const response = await fetch(apiBase + '/api/admin/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
+                                 const response = await fetch(apiBase + '/api/login', {
+                     method: 'POST',
+                     headers: { 'Content-Type': 'application/json' },
+                     body: JSON.stringify({ email, password })
+                 });
                 
                 const data = await response.json();
                 
