@@ -162,23 +162,31 @@ function handleRoomConfig(req, res) {
     return res.json({ success: true, config: config });
   } else if (req.method === 'POST' || req.method === 'PUT') {
     console.log('🔧 Room config request body:', req.body);
+    console.log('🔧 Request headers:', req.headers);
     const { roomType } = req.body;
     console.log('🔧 Room type received:', roomType);
+    console.log('🔧 Room type type:', typeof roomType);
     
     if (!roomType || !['small', 'medium', 'large'].includes(roomType)) {
       console.log('❌ Invalid room type:', roomType);
-      return res.status(400).json({ error: 'Invalid room type' });
+      console.log('❌ Valid types:', ['small', 'medium', 'large']);
+      return res.status(400).json({ error: 'Invalid room type', received: roomType });
     }
     
+    console.log('✅ Room type validation passed, updating config...');
     const updated = updateRoomConfig(roomType);
+    console.log('🔧 Update result:', updated);
+    
     if (updated) {
       const config = getCurrentRoomConfig();
+      console.log('✅ Config updated successfully:', config.currentRoom);
       return res.json({ 
         success: true, 
         message: `Sala configurada a: ${config.configs[roomType].name}`, 
         config: config 
       });
     } else {
+      console.log('❌ Failed to update room configuration');
       return res.status(400).json({ error: 'Failed to update room configuration' });
     }
   }
