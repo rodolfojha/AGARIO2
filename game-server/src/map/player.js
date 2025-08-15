@@ -246,7 +246,9 @@ exports.Player = class {
         for (let i = 0; i < this.cells.length; i++) {
             let cell = this.cells[i];
             cell.move(this.x, this.y, this.target, slowBase, initMassLog);
-            gameLogic.adjustForBoundaries(cell, cell.radius/3, 0, gameWidth, gameHeight);
+            
+            // Aplicar límites más estrictos para que el círculo completo y el nombre permanezcan dentro
+            gameLogic.adjustForBoundaries(cell, cell.radius, 0, gameWidth, gameHeight);
 
             xSum += cell.x;
             ySum += cell.y;

@@ -7,8 +7,8 @@ let currentRoomConfig = {
       width: 2000,
       height: 2000,
       maxPlayers: 30,
-      foodCount: 1000,
-      virusCount: 50
+      foodCount: 500,
+      virusCount: 20
     },
     medium: {
       name: 'Sala Mediana',

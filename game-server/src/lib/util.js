@@ -34,9 +34,13 @@ exports.randomInRange = function (from, to) {
 
 // generate a random position within the field of play
 exports.randomPosition = function (radius) {
+    // Usar las dimensiones actuales del config (que pueden haber sido actualizadas dinámicamente)
+    const gameWidth = cfg.gameWidth || 3000;
+    const gameHeight = cfg.gameHeight || 3000;
+    
     return {
-        x: exports.randomInRange(radius, cfg.gameWidth - radius),
-        y: exports.randomInRange(radius, cfg.gameHeight - radius)
+        x: exports.randomInRange(radius, gameWidth - radius),
+        y: exports.randomInRange(radius, gameHeight - radius)
     };
 };
 
