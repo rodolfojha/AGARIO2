@@ -3,7 +3,6 @@ node_modules/
 tmp/
 game-server/
 dev-server.js
-package.json
 package-lock.json
 *.log
 .env

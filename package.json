@@ -1,20 +1,26 @@
 {
-  "name": "agar-betting-platform",
+  "name": "agario-betting-admin",
   "version": "1.0.0",
+  "description": "Admin system for Agar.io Betting game",
+  "main": "index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
-    "build": "echo Building...",
-    "start": "node game-server/src/server.js"
+    "start": "node index.js",
+    "dev": "node dev-server.js"
   },
   "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.1",
-    "express": "^4.21.2",
-    "google-auth-library": "^8.9.0",
-    "jsonwebtoken": "^9.0.0",
-    "pg": "^8.11.0",
-    "socket.io": "^4.6.1",
-    "socket.io-client": "^4.6.1",
-    "uuid": "^9.0.0"
-  }
+    "google-auth-library": "^9.0.0"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "agario",
+    "betting",
+    "admin",
+    "game"
+  ],
+  "author": "Admin System",
+  "license": "MIT"
 }
