@@ -4,27 +4,27 @@ let currentRoomConfig = {
   configs: {
     small: {
       name: 'Sala Pequeña',
-      width: 1000,
-      height: 1000,
-      maxPlayers: 10,
-      foodCount: 100,
-      virusCount: 5
+      width: 2000,
+      height: 2000,
+      maxPlayers: 30,
+      foodCount: 1000,
+      virusCount: 50
     },
     medium: {
       name: 'Sala Mediana',
-      width: 2000,
-      height: 2000,
-      maxPlayers: 25,
-      foodCount: 200,
-      virusCount: 10
+      width: 3000,
+      height: 3000,
+      maxPlayers: 80,
+      foodCount: 2000,
+      virusCount: 100
     },
     large: {
       name: 'Sala Grande',
-      width: 3000,
-      height: 3000,
-      maxPlayers: 50,
-      foodCount: 300,
-      virusCount: 15
+      width: 4000,
+      height: 4000,
+      maxPlayers: 150,
+      foodCount: 3500,
+      virusCount: 200
     }
   }
 };

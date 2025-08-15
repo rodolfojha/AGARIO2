@@ -163,18 +163,19 @@ function handleRoomConfig(req, res) {
   } else if (req.method === 'POST' || req.method === 'PUT') {
     console.log('🔧 Room config request body:', req.body);
     console.log('🔧 Request headers:', req.headers);
-    const { roomType } = req.body;
-    console.log('🔧 Room type received:', roomType);
-    console.log('🔧 Room type type:', typeof roomType);
+    const { roomType, roomSize } = req.body;
+    const roomConfig = roomType || roomSize; // Aceptar ambos parámetros
+    console.log('🔧 Room config received:', roomConfig);
+    console.log('🔧 Room config type:', typeof roomConfig);
     
-    if (!roomType || !['small', 'medium', 'large'].includes(roomType)) {
-      console.log('❌ Invalid room type:', roomType);
+    if (!roomConfig || !['small', 'medium', 'large'].includes(roomConfig)) {
+      console.log('❌ Invalid room config:', roomConfig);
       console.log('❌ Valid types:', ['small', 'medium', 'large']);
-      return res.status(400).json({ error: 'Invalid room type', received: roomType });
+      return res.status(400).json({ error: 'Invalid room type', received: roomConfig });
     }
     
     console.log('✅ Room type validation passed, updating config...');
-    const updated = updateRoomConfig(roomType);
+    const updated = updateRoomConfig(roomConfig);
     console.log('🔧 Update result:', updated);
     
     if (updated) {
@@ -182,7 +183,7 @@ function handleRoomConfig(req, res) {
       console.log('✅ Config updated successfully:', config.currentRoom);
       return res.json({ 
         success: true, 
-        message: `Sala configurada a: ${config.configs[roomType].name}`, 
+        message: `Sala configurada a: ${config.configs[roomConfig].name}`, 
         config: config 
       });
     } else {
