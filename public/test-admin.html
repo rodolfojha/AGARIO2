@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Admin System - Agar.io Betting</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8">
+            <i class="fas fa-vial mr-2"></i>Test del Sistema de Administración
+        </h1>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Test APIs -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-4">
+                    <i class="fas fa-code mr-2"></i>Test de APIs
+                </h2>
+                
+                <div class="space-y-4">
+                    <button onclick="testAPI('test')" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg">
+                        <i class="fas fa-play mr-2"></i>Test API Básica
+                    </button>
+                    
+                    <button onclick="testAPI('login')" class="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Test Login Admin
+                    </button>
+                    
+                    <button onclick="testAPI('check-status')" class="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-lg">
+                        <i class="fas fa-user-shield mr-2"></i>Test Check Admin Status
+                    </button>
+                    
+                    <button onclick="testAPI('stats')" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg">
+                        <i class="fas fa-chart-bar mr-2"></i>Test Stats
+                    </button>
+                </div>
+            </div>
+
+            <!-- Test Login -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-4">
+                    <i class="fas fa-key mr-2"></i>Test de Login
+                </h2>
+                
+                <form id="testLoginForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="testEmail" value="rodolfoalva1345@gmail.com" 
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Contraseña</label>
+                        <input type="password" id="testPassword" value="admin123" 
+                               class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md">
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg">
+                        <i class="fas fa-sign-in-alt mr-2"></i>Probar Login
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-bold mb-4">
+                <i class="fas fa-clipboard-list mr-2"></i>Resultados
+            </h2>
+            
+            <div id="results" class="space-y-2">
+                <p class="text-gray-500">Haz clic en los botones de arriba para probar las APIs</p>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="mt-8 bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-bold mb-4">
+                <i class="fas fa-link mr-2"></i>Enlaces Rápidos
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <a href="/admin-dashboard.html" class="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg text-center">
+                    <i class="fas fa-crown mr-2"></i>Dashboard Admin
+                </a>
+                
+                <a href="/admin-setup.html" class="bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg text-center">
+                    <i class="fas fa-cog mr-2"></i>Setup Admin
+                </a>
+                
+                <a href="/" class="bg-purple-500 hover:bg-purple-600 text-white py-3 px-4 rounded-lg text-center">
+                    <i class="fas fa-home mr-2"></i>Dashboard Principal
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://back.pruebatupanel.com';
+        let currentToken = null;
+
+        // Test APIs
+        async function testAPI(type) {
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                let response, data;
+                
+                switch(type) {
+                    case 'test':
+                        response = await fetch(apiBase + '/api/admin/test');
+                        data = await response.json();
+                        addResult('✅ Test API', data);
+                        break;
+                        
+                    case 'login':
+                        response = await fetch(apiBase + '/api/admin/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: 'rodolfoalva1345@gmail.com',
+                                password: 'admin123'
+                            })
+                        });
+                        data = await response.json();
+                        if (data.success) {
+                            currentToken = data.token;
+                            addResult('✅ Login Admin', { message: 'Login exitoso', user: data.user.name });
+                        } else {
+                            addResult('❌ Login Admin', data);
+                        }
+                        break;
+                        
+                    case 'check-status':
+                        if (!currentToken) {
+                            addResult('❌ Check Status', { error: 'No hay token. Haz login primero.' });
+                            return;
+                        }
+                        response = await fetch(apiBase + '/api/admin/check-status', {
+                            headers: { 'Authorization': 'Bearer ' + currentToken }
+                        });
+                        data = await response.json();
+                        addResult('✅ Check Status', data);
+                        break;
+                        
+                    case 'stats':
+                        if (!currentToken) {
+                            addResult('❌ Stats', { error: 'No hay token. Haz login primero.' });
+                            return;
+                        }
+                        response = await fetch(apiBase + '/api/admin/stats', {
+                            headers: { 'Authorization': 'Bearer ' + currentToken }
+                        });
+                        data = await response.json();
+                        addResult('✅ Stats', data);
+                        break;
+                }
+            } catch (error) {
+                addResult('❌ Error', { error: error.message });
+            }
+        }
+
+        // Add result to display
+        function addResult(title, data) {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'p-4 border rounded-lg';
+            resultDiv.innerHTML = `
+                <h3 class="font-bold mb-2">${title}</h3>
+                <pre class="text-sm bg-gray-100 p-2 rounded overflow-x-auto">${JSON.stringify(data, null, 2)}</pre>
+            `;
+            resultsDiv.appendChild(resultDiv);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        // Test login form
+        document.getElementById('testLoginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+            
+            try {
+                const response = await fetch(apiBase + '/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentToken = data.token;
+                    addResult('✅ Login Manual', { 
+                        message: 'Login exitoso', 
+                        user: data.user.name,
+                        email: data.user.email,
+                        isAdmin: data.user.is_admin
+                    });
+                } else {
+                    addResult('❌ Login Manual', data);
+                }
+            } catch (error) {
+                addResult('❌ Error Login', { error: error.message });
+            }
+        });
+
+        // Auto-test on load
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                testAPI('test');
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

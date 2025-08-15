@@ -341,57 +341,28 @@
             const userData = localStorage.getItem('userData');
             
             if (token && userData) {
-                authManager = {
-                    token: token,
-                    user: JSON.parse(userData),
-                    isAuthenticated: true
-                };
-                
-                document.getElementById('adminName').textContent = authManager.user.name;
-                
-                // Verificar si el usuario es administrador antes de cargar datos
-                checkAdminAndLoad();
+                try {
+                    authManager = {
+                        token: token,
+                        user: JSON.parse(userData),
+                        isAuthenticated: true
+                    };
+                    
+                    document.getElementById('adminName').textContent = authManager.user.name;
+                    
+                    // Intentar cargar datos directamente
+                    loadStats();
+                    loadRoomConfig();
+                } catch (error) {
+                    console.error('Error parsing user data:', error);
+                    // Si hay error, limpiar datos y mostrar login
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('userData');
+                    document.getElementById('loginModal').style.display = 'flex';
+                }
             } else {
                 // Mostrar modal de login
                 document.getElementById('loginModal').style.display = 'flex';
-            }
-        }
-
-        // Verificar si es administrador y cargar datos
-        async function checkAdminAndLoad() {
-            try {
-                const response = await fetch(apiBase + '/api/admin/check-status', {
-                    headers: {
-                        'Authorization': 'Bearer ' + authManager.token
-                    }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.isAdmin) {
-                        // Es administrador, cargar datos
-                        loadStats();
-                        loadRoomConfig();
-                    } else {
-                        // No es administrador, redirigir
-                        showToast('No tienes permisos de administrador', 'error');
-                        setTimeout(() => {
-                            window.location.href = '/';
-                        }, 2000);
-                    }
-                } else {
-                    // Error en la verificación, redirigir
-                    showToast('Error de autenticación', 'error');
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 2000);
-                }
-            } catch (error) {
-                console.error('Error checking admin status:', error);
-                showToast('Error de conexión', 'error');
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 2000);
             }
         }
 
@@ -408,7 +379,16 @@
                     const data = await response.json();
                     updateStatsDisplay(data.stats);
                 } else {
-                    showToast('Error al cargar estadísticas', 'error');
+                    console.log('Error loading stats:', response.status);
+                    // Si hay error de autenticación, mostrar login
+                    if (response.status === 401 || response.status === 403) {
+                        showToast('Sesión expirada. Por favor inicia sesión nuevamente.', 'error');
+                        localStorage.removeItem('authToken');
+                        localStorage.removeItem('userData');
+                        document.getElementById('loginModal').style.display = 'flex';
+                    } else {
+                        showToast('Error al cargar estadísticas', 'error');
+                    }
                 }
             } catch (error) {
                 console.error('Error loading stats:', error);
@@ -444,7 +424,16 @@
                     const data = await response.json();
                     updateRoomConfigDisplay(data.config);
                 } else {
-                    showToast('Error al cargar configuración de salas', 'error');
+                    console.log('Error loading room config:', response.status);
+                    // Si hay error de autenticación, mostrar login
+                    if (response.status === 401 || response.status === 403) {
+                        showToast('Sesión expirada. Por favor inicia sesión nuevamente.', 'error');
+                        localStorage.removeItem('authToken');
+                        localStorage.removeItem('userData');
+                        document.getElementById('loginModal').style.display = 'flex';
+                    } else {
+                        showToast('Error al cargar configuración de salas', 'error');
+                    }
                 }
             } catch (error) {
                 console.error('Error loading room config:', error);
