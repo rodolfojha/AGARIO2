@@ -8,8 +8,13 @@ module.exports = (req, res) => {
   }
   
   res.status(200).json({ 
-    message: 'API works with CommonJS!', 
+    message: 'Test API works!', 
     timestamp: new Date().toISOString(),
-    method: req.method
+    method: req.method,
+    url: req.url,
+    database: {
+      users: 5,
+      games: 70
+    }
   });
 };
