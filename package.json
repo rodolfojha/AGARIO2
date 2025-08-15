@@ -1,26 +1,4 @@
 {
-  "name": "agario-betting-admin",
-  "version": "1.0.0",
-  "description": "Admin system for Agar.io Betting game",
-  "main": "index.js",
-  "type": "module",
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "scripts": {
-    "start": "node index.js",
-    "dev": "node dev-server.js"
-  },
-  "dependencies": {
-    "google-auth-library": "^9.0.0"
-  },
-  "devDependencies": {},
-  "keywords": [
-    "agario",
-    "betting",
-    "admin",
-    "game"
-  ],
-  "author": "Admin System",
-  "license": "MIT"
+  "name": "agario-betting",
+  "version": "1.0.0"
 }
