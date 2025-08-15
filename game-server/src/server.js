@@ -4,20 +4,40 @@
 const express = require('express');
 const app = express();
 const http = require('http').Server(app);
-const io = require('socket.io')(http);
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    next();
+});
+const io = require('socket.io')(http, {
+    cors: {
+        origin: [
+            "http://localhost:3000", 
+            "http://127.0.0.1:3000",
+            "https://splittaio.com",
+            "https://back.pruebatupanel.com"
+        ],
+        methods: ["GET", "POST"],
+        credentials: true
+    }
+});
 
 const gameLogic = require('./game-logic');
 const loggingRepositry = require('./repositories/logging-repository');
 const chatRepository = require('./repositories/chat-repository');
 const config = require('../config');
-const map = require('./map/map');
+const mapUtils = require('./map/map');
 const SAT = require('sat');
 const Vector = SAT.Vector;
 const roomSync = require('./room-sync');
 const {getPosition} = require("./lib/entityUtils");
 const util = require('./lib/util');
 
-let map = new map.Map(config);
+let map = new mapUtils.Map(config);
 
 let sockets = {};
 let spectators = [];
@@ -31,6 +51,8 @@ app.use(express.static(__dirname + '/../client'));
 // Cargar configuración de sala al iniciar el servidor
 roomSync.loadRoomConfigFromAPI().then(() => {
     console.log('🎮 Room configuration loaded');
+    // Recrear el mapa con la nueva configuración
+    map = new mapUtils.Map(config);
 }).catch(err => {
     console.log('ℹ️ Using default room configuration');
 });
@@ -95,6 +117,7 @@ const addPlayer = (socket) => {
 
     socket.on('respawn', () => {
         map.players.removePlayerByID(currentPlayer.id);
+        currentPlayer.init(generateSpawnpoint(), config.defaultPlayerMass);
         socket.emit('welcome', currentPlayer, {
             width: config.gameWidth,
             height: config.gameHeight
