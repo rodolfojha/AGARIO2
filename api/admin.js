@@ -24,6 +24,8 @@ module.exports = (req, res) => {
         return handleStats(req, res);
       case 'room-config':
         return handleRoomConfig(req, res);
+      case 'set-config':
+        return handleSetConfig(req, res);
       case 'assign-admin':
         return handleAssignAdmin(req, res);
       case 'setup-first-admin':
@@ -182,6 +184,32 @@ function handleRoomConfig(req, res) {
   }
 
   return res.status(405).json({ error: 'Method not allowed' });
+}
+
+// Establecer configuración desde cliente
+function handleSetConfig(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const { config } = req.body;
+  if (!config) {
+    return res.status(400).json({ error: 'Config required' });
+  }
+
+  // Importar configuración compartida
+  const { setConfigFromClient } = require('./config.js');
+
+  const success = setConfigFromClient(config);
+  if (success) {
+    return res.json({ 
+      success: true, 
+      message: 'Configuración establecida correctamente',
+      config: config
+    });
+  } else {
+    return res.status(400).json({ error: 'Invalid configuration' });
+  }
 }
 
 // Asignar administrador

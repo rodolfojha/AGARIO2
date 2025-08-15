@@ -1,4 +1,4 @@
-// Configuración compartida para el sistema (almacenamiento en memoria)
+// Configuración compartida para el sistema
 let currentRoomConfig = {
   currentRoom: 'medium',
   configs: {
@@ -39,6 +39,10 @@ function updateRoomConfig(roomType) {
   if (['small', 'medium', 'large'].includes(roomType)) {
     currentRoomConfig.currentRoom = roomType;
     console.log('🎮 Room config updated to:', roomType);
+    
+    // Guardar en una variable global que persista
+    global.roomConfig = currentRoomConfig;
+    
     return true;
   }
   return false;
@@ -49,14 +53,31 @@ function getCurrentRoomSettings() {
   return currentRoomConfig.configs[currentRoomConfig.currentRoom];
 }
 
-// Función para recargar configuración (mantiene la configuración en memoria)
+// Función para recargar configuración
 function reloadConfig() {
+  // Si hay configuración guardada globalmente, usarla
+  if (global.roomConfig) {
+    currentRoomConfig = global.roomConfig;
+    console.log('🔄 Configuración recargada desde memoria global:', currentRoomConfig.currentRoom);
+  }
   return currentRoomConfig;
+}
+
+// Función para establecer configuración desde el cliente
+function setConfigFromClient(config) {
+  if (config && config.currentRoom && ['small', 'medium', 'large'].includes(config.currentRoom)) {
+    currentRoomConfig.currentRoom = config.currentRoom;
+    global.roomConfig = currentRoomConfig;
+    console.log('📱 Configuración establecida desde cliente:', config.currentRoom);
+    return true;
+  }
+  return false;
 }
 
 module.exports = {
   getCurrentRoomConfig,
   updateRoomConfig,
   getCurrentRoomSettings,
-  reloadConfig
+  reloadConfig,
+  setConfigFromClient
 };

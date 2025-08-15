@@ -414,6 +414,19 @@
         // Cargar configuración de salas
         async function loadRoomConfig() {
             try {
+                // Primero intentar cargar desde localStorage
+                const savedConfig = localStorage.getItem('roomConfig');
+                if (savedConfig) {
+                    try {
+                        const config = JSON.parse(savedConfig);
+                        updateRoomConfigDisplay(config);
+                        console.log('📱 Configuración cargada desde localStorage:', config.currentRoom);
+                    } catch (e) {
+                        console.error('Error parsing saved config:', e);
+                    }
+                }
+                
+                // Luego cargar desde servidor para sincronizar
                 const response = await fetch(apiBase + '/api/admin/room-config', {
                     headers: {
                         'Authorization': 'Bearer ' + authManager.token
@@ -423,6 +436,9 @@
                 if (response.ok) {
                     const data = await response.json();
                     updateRoomConfigDisplay(data.config);
+                    
+                    // Guardar en localStorage
+                    localStorage.setItem('roomConfig', JSON.stringify(data.config));
                 } else {
                     console.log('Error loading room config:', response.status);
                     // Si hay error de autenticación, mostrar login
@@ -463,6 +479,7 @@
         // Configurar sala
         async function setRoomConfig(roomType) {
             try {
+                // Primero actualizar en el servidor
                 const response = await fetch(apiBase + '/api/admin/room-config', {
                     method: 'POST',
                     headers: {
@@ -474,6 +491,21 @@
                 
                 if (response.ok) {
                     const data = await response.json();
+                    
+                    // Guardar configuración en localStorage
+                    const config = data.config;
+                    localStorage.setItem('roomConfig', JSON.stringify(config));
+                    
+                    // Enviar configuración al servidor para persistencia
+                    await fetch(apiBase + '/api/admin/set-config', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + authManager.token
+                        },
+                        body: JSON.stringify({ config: config })
+                    });
+                    
                     showToast(data.message, 'success');
                     loadRoomConfig();
                 } else {
