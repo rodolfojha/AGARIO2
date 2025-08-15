@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Ruta al archivo de la base de datos
-const DB_PATH = path.join(__dirname, 'api', 'lib', 'database.json');
+const DB_PATH = path.join(__dirname, 'api', 'lib', 'db-data.json');
 
 function addBalanceDirectly() {
     try {
