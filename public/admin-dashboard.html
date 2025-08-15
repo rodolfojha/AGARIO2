@@ -32,6 +32,47 @@
     </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <div class="text-center mb-6">
+                <div class="setup-card text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-crown text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">Acceso Administrativo</h2>
+                <p class="text-gray-600 mt-2">Ingresa tus credenciales para acceder al panel</p>
+            </div>
+            
+            <form id="adminLoginForm" class="space-y-4">
+                <div>
+                    <label for="adminEmail" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="adminEmail" required
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="admin@ejemplo.com">
+                </div>
+                
+                <div>
+                    <label for="adminPassword" class="block text-sm font-medium text-gray-700">Contraseña</label>
+                    <input type="password" id="adminPassword" required
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="••••••••">
+                </div>
+                
+                <button type="submit" 
+                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Iniciar Sesión
+                </button>
+            </form>
+            
+            <div class="mt-4 text-center">
+                <p class="text-sm text-gray-500">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Usa tu email de Google registrado en el sistema
+                </p>
+            </div>
+        </div>
+    </div>
+
     <!-- Header -->
     <header class="gradient-bg text-white shadow-lg">
         <div class="container mx-auto px-6 py-4">
@@ -233,7 +274,65 @@
         // Inicialización
         document.addEventListener('DOMContentLoaded', function() {
             initializeAuth();
+            setupLoginForm();
         });
+
+        // Configurar formulario de login
+        function setupLoginForm() {
+            document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const email = document.getElementById('adminEmail').value.trim();
+                const password = document.getElementById('adminPassword').value.trim();
+                
+                if (!email || !password) {
+                    showToast('Por favor completa todos los campos', 'error');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(apiBase + '/api/admin/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ email, password })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        // Guardar datos de autenticación
+                        localStorage.setItem('authToken', data.token);
+                        localStorage.setItem('userData', JSON.stringify(data.user));
+                        
+                        authManager = {
+                            token: data.token,
+                            user: data.user,
+                            isAuthenticated: true
+                        };
+                        
+                        // Ocultar modal de login
+                        document.getElementById('loginModal').style.display = 'none';
+                        
+                        // Actualizar nombre en header
+                        document.getElementById('adminName').textContent = authManager.user.name;
+                        
+                        // Cargar datos del dashboard
+                        loadStats();
+                        loadRoomConfig();
+                        
+                        showToast('Login exitoso', 'success');
+                    } else {
+                        const error = await response.json();
+                        showToast(error.error, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error en login:', error);
+                    showToast('Error de conexión', 'error');
+                }
+            });
+        }
 
         // Sistema de autenticación
         function initializeAuth() {
@@ -253,8 +352,8 @@
                 // Verificar si el usuario es administrador antes de cargar datos
                 checkAdminAndLoad();
             } else {
-                // Redirigir al login si no hay token
-                window.location.href = '/';
+                // Mostrar modal de login
+                document.getElementById('loginModal').style.display = 'flex';
             }
         }
 

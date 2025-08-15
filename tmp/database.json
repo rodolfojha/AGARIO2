@@ -11,6 +11,7 @@
       "total_wagered": 0,
       "total_won": 0,
       "games_played": 0,
+      "is_admin": true,
       "created_at": "2025-08-06T23:26:19.237Z",
       "last_login": "2025-08-07T02:23:24.130Z"
     },
@@ -39,6 +40,7 @@
       "total_wagered": 0,
       "total_won": 0,
       "games_played": 0,
+      "is_admin": true,
       "created_at": "2025-08-06T23:28:29.361Z",
       "last_login": "2025-08-06T23:28:29.362Z"
     }

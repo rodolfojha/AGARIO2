@@ -311,6 +311,19 @@ class Database {
     extractUserIdFromToken(token) {
     if (token.startsWith('dev-jwt-token-')) {
         return 'dev-user-123';
+    } else if (token.startsWith('admin-jwt-')) {
+        // Formato: admin-jwt-TIMESTAMP-USERID
+        const tokenParts = token.split('-');
+        console.log('🔍 Admin token parts:', tokenParts);
+        
+        if (tokenParts.length >= 4) {
+            // Tomar el último elemento como user ID
+            const userId = tokenParts.slice(-1)[0];
+            console.log('🎯 Extracted admin user ID:', userId);
+            return userId;
+        }
+        
+        console.log('❌ Failed to extract admin user ID from token:', token);
     } else if (token.startsWith('google-jwt-')) {
         // Formato: google-jwt-TIMESTAMP-google-GOOGLEID
         const tokenParts = token.split('-');
