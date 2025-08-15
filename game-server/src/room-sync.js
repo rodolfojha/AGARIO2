@@ -38,8 +38,19 @@ async function loadRoomConfigFromAPI() {
         if (response.ok) {
             const data = await response.json();
             if (data.success && data.config && data.config.currentRoom) {
-                const roomSettings = data.config.configs[data.config.currentRoom];
-                return updateServerConfig(roomSettings);
+                const roomConfig = data.config.configs[data.config.currentRoom];
+                console.log(`🎮 Room config loaded: ${roomConfig.name} (${roomConfig.width}x${roomConfig.height})`);
+                console.log(`📊 Food: ${roomConfig.foodCount}, Virus: ${roomConfig.virusCount}`);
+                
+                return {
+                    success: true,
+                    config: {
+                        width: roomConfig.width,
+                        height: roomConfig.height,
+                        foodCount: roomConfig.foodCount,
+                        virusCount: roomConfig.virusCount
+                    }
+                };
             }
         }
         

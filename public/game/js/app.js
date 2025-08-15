@@ -202,6 +202,14 @@ function setupSocket(socket) {
         window.chat.addSystemLine('{GAME} - <b>' + (isUnnamedCell(data.name) ? 'An unnamed cell' : data.name) + '</b> disconnected.');
     });
 
+    // Escuchar actualizaciones dinámicas del mapa
+    socket.on('mapUpdate', function (mapSizes) {
+        global.game.width = mapSizes.width;
+        global.game.height = mapSizes.height;
+        window.chat.addSystemLine('{SYSTEM} - Map size updated to ' + mapSizes.width + 'x' + mapSizes.height);
+        resize();
+    });
+
     socket.on('playerJoin', (data) => {
         window.chat.addSystemLine('{GAME} - <b>' + (isUnnamedCell(data.name) ? 'An unnamed cell' : data.name) + '</b> joined.');
     });

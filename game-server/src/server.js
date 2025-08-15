@@ -49,10 +49,18 @@ let leaderboardChanged = false;
 app.use(express.static(__dirname + '/../client'));
 
 // Cargar configuración de sala al iniciar el servidor
-roomSync.loadRoomConfigFromAPI().then(() => {
-    console.log('🎮 Room configuration loaded');
-    // Recrear el mapa con la nueva configuración
-    map = new mapUtils.Map(config);
+roomSync.loadRoomConfigFromAPI().then((result) => {
+    if (result && result.success) {
+        console.log('🎮 Room configuration loaded');
+        // Recrear el mapa con la nueva configuración
+        map = new mapUtils.Map(config);
+        
+        // Notificar a todos los clientes conectados sobre las nuevas dimensiones
+        io.emit('mapUpdate', {
+            width: config.gameWidth,
+            height: config.gameHeight
+        });
+    }
 }).catch(err => {
     console.log('ℹ️ Using default room configuration');
 });
@@ -100,6 +108,13 @@ const addPlayer = (socket) => {
 
             currentPlayer.clientProvidedData(clientPlayerData);
             map.players.pushNew(currentPlayer);
+            
+            // Enviar dimensiones actualizadas del mapa al cliente
+            socket.emit('welcome', currentPlayer, {
+                width: config.gameWidth,
+                height: config.gameHeight
+            });
+            
             io.emit('playerJoin', { name: currentPlayer.name });
             console.log('Total players: ' + map.players.data.length);
         }

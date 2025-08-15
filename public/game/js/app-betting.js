@@ -947,6 +947,19 @@ function setupGameSocket(socket) {
         }
     });
 
+    // Escuchar actualizaciones dinámicas del mapa
+    socket.on('mapUpdate', function (mapSizes) {
+        console.log('🗺️ Map size updated:', mapSizes);
+        global.game.width = mapSizes.width;
+        global.game.height = mapSizes.height;
+        
+        if (global.chatClient) {
+            global.chatClient.addSystemLine('{SYSTEM} - Map size updated to ' + mapSizes.width + 'x' + mapSizes.height);
+        }
+        
+        resize();
+    });
+
     // === LEADERBOARD ===
     socket.on('leaderboard', function(data) {
         leaderboard = data.leaderboard;
