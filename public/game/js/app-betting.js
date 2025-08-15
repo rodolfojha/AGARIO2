@@ -629,11 +629,19 @@ async function startGameWithBetting(type, playerName, gameData) {
         console.log('🔧 Obteniendo configuración de sala del servidor...');
         const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : `https://${window.location.hostname}`;
         
+        // Intentar obtener configuración con autenticación si está disponible
+        let headers = {
+            'Content-Type': 'application/json'
+        };
+        
+        // Agregar token de autenticación si está disponible
+        if (authManager && authManager.token) {
+            headers['Authorization'] = 'Bearer ' + authManager.token;
+        }
+        
         const response = await fetch(apiBase + '/api/admin/room-config', {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+            headers: headers
         });
         
         if (response.ok) {
@@ -660,10 +668,58 @@ async function startGameWithBetting(type, playerName, gameData) {
                 });
             }
         } else {
-            console.warn('⚠️ No se pudo obtener configuración del servidor, usando configuración por defecto');
+            console.warn('⚠️ No se pudo obtener configuración del servidor, intentando localStorage...');
+            
+            // Intentar cargar desde localStorage como fallback
+            const savedConfig = localStorage.getItem('roomConfig');
+            if (savedConfig) {
+                try {
+                    const config = JSON.parse(savedConfig);
+                    const roomType = config.currentRoom;
+                    const roomSettings = config.configs[roomType];
+                    
+                    console.log('📱 Usando configuración de localStorage:', roomType, roomSettings);
+                    
+                    // Actualizar dimensiones del juego
+                    global.game.width = roomSettings.width;
+                    global.game.height = roomSettings.height;
+                    
+                    console.log('📐 Dimensiones del juego actualizadas desde localStorage:', {
+                        width: global.game.width,
+                        height: global.game.height
+                    });
+                } catch (e) {
+                    console.error('❌ Error parsing localStorage config:', e);
+                }
+            } else {
+                console.warn('⚠️ No hay configuración guardada, usando configuración por defecto');
+            }
         }
     } catch (error) {
         console.error('❌ Error obteniendo configuración:', error);
+        
+        // Intentar cargar desde localStorage como fallback
+        const savedConfig = localStorage.getItem('roomConfig');
+        if (savedConfig) {
+            try {
+                const config = JSON.parse(savedConfig);
+                const roomType = config.currentRoom;
+                const roomSettings = config.configs[roomType];
+                
+                console.log('📱 Usando configuración de localStorage (fallback):', roomType, roomSettings);
+                
+                // Actualizar dimensiones del juego
+                global.game.width = roomSettings.width;
+                global.game.height = roomSettings.height;
+                
+                console.log('📐 Dimensiones del juego actualizadas desde localStorage:', {
+                    width: global.game.width,
+                    height: global.game.height
+                });
+            } catch (e) {
+                console.error('❌ Error parsing localStorage config:', e);
+            }
+        }
     }
     
     global.playerName = playerName;
