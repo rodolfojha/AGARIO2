@@ -134,6 +134,13 @@ function handleStats(req, res) {
 
 // Configuración de salas
 function handleRoomConfig(req, res) {
+  console.log('🎮 Room config request:', {
+    method: req.method,
+    headers: req.headers,
+    body: req.body,
+    url: req.url
+  });
+  
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'No token provided' });
@@ -152,8 +159,12 @@ function handleRoomConfig(req, res) {
     const config = reloadConfig();
     return res.json({ success: true, config: config });
   } else if (req.method === 'POST' || req.method === 'PUT') {
+    console.log('🔧 Room config request body:', req.body);
     const { roomType } = req.body;
+    console.log('🔧 Room type received:', roomType);
+    
     if (!roomType || !['small', 'medium', 'large'].includes(roomType)) {
+      console.log('❌ Invalid room type:', roomType);
       return res.status(400).json({ error: 'Invalid room type' });
     }
     
