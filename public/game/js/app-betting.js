@@ -795,6 +795,12 @@ function setupGameSocket(socket) {
             if (global.playerType === 'player' && global.currentBet > 0) {
                 global.chatClient.addSystemLine('🎮 <b>Controls:</b> C = Cash Out, ESC = Exit Game');
             }
+            
+            // Mostrar información de la sala actual
+            if (window.RoomConfig) {
+                const roomInfo = window.RoomConfig.getRoomInfo();
+                global.chatClient.addSystemLine(`🏟️ <b>Room:</b> ${roomInfo.name} (${roomInfo.dimensions})`);
+            }
         }
         
         // Focus en canvas
@@ -803,8 +809,18 @@ function setupGameSocket(socket) {
             canvas.focus();
         }
         
-        global.game.width = gameSizes.width;
-        global.game.height = gameSizes.height;
+        // Usar configuración de sala si está disponible, sino usar la del servidor
+        if (window.RoomConfig) {
+            const dimensions = window.RoomConfig.getGameDimensions();
+            global.game.width = dimensions.width;
+            global.game.height = dimensions.height;
+            console.log('🎮 Using room config dimensions:', dimensions);
+        } else {
+            global.game.width = gameSizes.width;
+            global.game.height = gameSizes.height;
+            console.log('🎮 Using server dimensions:', gameSizes);
+        }
+        
         resize();
     });
 

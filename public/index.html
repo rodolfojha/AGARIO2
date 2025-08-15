@@ -385,6 +385,10 @@
                                 <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zM8 7a1 1 0 112 0v4a1 1 0 11-2 0V7zm2-3a1 1 0 100 2 1 1 0 000-2z"></path></svg>
                                 Browse Lobbies
                             </button>
+                            <button id="adminPanelBtn" class="flex items-center bg-red-600 text-white py-2 px-4 rounded-full hover:bg-red-700 transition-colors duration-300" style="display: none;">
+                                <svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Admin Panel
+                            </button>
         </div>
                         <div class="mt-4 flex justify-around w-full">
                             <div>
@@ -562,6 +566,7 @@
               const googleLoginBtn = document.getElementById('googleLoginBtn');
               const logoutBtn = document.getElementById('logoutBtn');
               const userName = document.getElementById('userName');
+              const adminPanelBtn = document.getElementById('adminPanelBtn');
               
               if (authManager && authManager.isAuthenticated) {
                   if (devLoginBtn) devLoginBtn.style.display = 'none';
@@ -570,16 +575,54 @@
                   if (userName && authManager.user) {
                       userName.textContent = authManager.user.name || authManager.user.email || 'Usuario';
                   }
+                  
+                  // Verificar si el usuario es administrador
+                  checkAdminStatus();
+                  
                   console.log('✅ User authenticated, showing logout button');
               } else {
                   if (devLoginBtn) devLoginBtn.style.display = 'block';
                   if (googleLoginBtn) googleLoginBtn.style.display = 'block';
                   if (logoutBtn) logoutBtn.style.display = 'none';
+                  if (adminPanelBtn) adminPanelBtn.style.display = 'none';
                   if (userName) {
                       userName.textContent = 'Nombre del jugador';
                   }
                   console.log('🔒 User not authenticated, showing login buttons');
               }
+          }
+          
+          // Función para verificar si el usuario es administrador
+          async function checkAdminStatus() {
+              if (!authManager || !authManager.isAuthenticated) return;
+              
+              try {
+                  const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://back.pruebatupanel.com';
+                  const response = await fetch(apiBase + '/api/admin/check-status', {
+                      headers: {
+                          'Authorization': 'Bearer ' + authManager.token
+                      }
+                  });
+                  
+                  if (response.ok) {
+                      const data = await response.json();
+                      const adminPanelBtn = document.getElementById('adminPanelBtn');
+                      
+                      if (data.isAdmin && adminPanelBtn) {
+                          adminPanelBtn.style.display = 'flex';
+                          console.log('👑 User is admin, showing admin panel button');
+                      } else if (adminPanelBtn) {
+                          adminPanelBtn.style.display = 'none';
+                      }
+                  }
+              } catch (error) {
+                  console.log('🔒 User is not admin or error checking admin status');
+              }
+          }
+          
+          // Función para abrir el panel de administración
+          function openAdminPanel() {
+              window.open('/admin-panel.html', '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
           }
           
           // Google Sign-In functions
@@ -891,6 +934,15 @@
                           authManager.logout();
                           updateLoginButtons();
                       }
+                  });
+              }
+              
+              // Setup Admin Panel button
+              const adminPanelBtn = document.getElementById('adminPanelBtn');
+              if (adminPanelBtn) {
+                  adminPanelBtn.addEventListener('click', () => {
+                      console.log('👑 Admin Panel button clicked');
+                      openAdminPanel();
                   });
               }
           });
