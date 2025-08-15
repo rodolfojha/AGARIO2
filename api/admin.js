@@ -144,50 +144,29 @@ function handleRoomConfig(req, res) {
     return res.status(403).json({ error: 'Admin access required' });
   }
 
-  const defaultConfig = {
-    currentRoom: 'medium',
-    configs: {
-      small: {
-        name: 'Sala Pequeña',
-        width: 1000,
-        height: 1000,
-        maxPlayers: 10,
-        foodCount: 100,
-        virusCount: 5
-      },
-      medium: {
-        name: 'Sala Mediana',
-        width: 2000,
-        height: 2000,
-        maxPlayers: 25,
-        foodCount: 200,
-        virusCount: 10
-      },
-      large: {
-        name: 'Sala Grande',
-        width: 3000,
-        height: 3000,
-        maxPlayers: 50,
-        foodCount: 300,
-        virusCount: 15
-      }
-    }
-  };
+  // Importar configuración compartida
+  const { getCurrentRoomConfig, updateRoomConfig } = require('./config.js');
 
   if (req.method === 'GET') {
-    return res.json({ success: true, config: defaultConfig });
+    const config = getCurrentRoomConfig();
+    return res.json({ success: true, config: config });
   } else if (req.method === 'POST' || req.method === 'PUT') {
     const { roomType } = req.body;
     if (!roomType || !['small', 'medium', 'large'].includes(roomType)) {
       return res.status(400).json({ error: 'Invalid room type' });
     }
     
-    defaultConfig.currentRoom = roomType;
-    return res.json({ 
-      success: true, 
-      message: `Sala configurada a: ${defaultConfig.configs[roomType].name}`, 
-      config: defaultConfig 
-    });
+    const updated = updateRoomConfig(roomType);
+    if (updated) {
+      const config = getCurrentRoomConfig();
+      return res.json({ 
+        success: true, 
+        message: `Sala configurada a: ${config.configs[roomType].name}`, 
+        config: config 
+      });
+    } else {
+      return res.status(400).json({ error: 'Failed to update room configuration' });
+    }
   }
 
   return res.status(405).json({ error: 'Method not allowed' });

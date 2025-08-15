@@ -50,6 +50,12 @@ function handleGameStart(req, res) {
     return res.status(401).json({ error: 'Invalid token' });
   }
 
+  // Importar configuración compartida
+  const { getCurrentRoomSettings } = require('./config.js');
+  
+  // Obtener configuración actual de la sala
+  const roomSettings = getCurrentRoomSettings();
+  
   // Generar datos del juego
   const gameId = 'game-' + Date.now();
   const gameData = {
@@ -57,20 +63,14 @@ function handleGameStart(req, res) {
     betAmount: parseFloat(betAmount),
     startTime: new Date().toISOString(),
     status: 'active',
-    roomConfig: {
-      width: 2000,
-      height: 2000,
-      maxPlayers: 25,
-      foodCount: 200,
-      virusCount: 10
-    },
+    roomConfig: roomSettings,
     player: {
       id: 'player-' + Date.now(),
       name: 'Player',
       balance: 1000.00,
       position: {
-        x: Math.random() * 2000,
-        y: Math.random() * 2000
+        x: Math.random() * roomSettings.width,
+        y: Math.random() * roomSettings.height
       }
     },
     server: {
