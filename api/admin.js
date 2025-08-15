@@ -143,14 +143,20 @@ function handleRoomConfig(req, res) {
     url: req.url
   });
   
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'No token provided' });
-  }
+  // Para requests GET (servidor de juego), no requerir autenticación
+  if (req.method === 'GET') {
+    console.log('🎮 Public room config request from game server');
+  } else {
+    // Para POST/PUT (admin panel), requerir autenticación
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
 
-  const token = authHeader.replace('Bearer ', '');
-  if (!token.startsWith('admin-jwt-')) {
-    return res.status(403).json({ error: 'Admin access required' });
+    const token = authHeader.replace('Bearer ', '');
+    if (!token.startsWith('admin-jwt-')) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
   }
 
   // Importar configuración compartida
