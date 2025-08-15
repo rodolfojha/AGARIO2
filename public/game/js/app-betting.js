@@ -658,8 +658,17 @@ function startGameWithBetting(type, playerName, gameData) {
     let query = 'type=' + type;
     if (type === 'player' && gameData && authManager.user) {
         query += '&userId=' + authManager.user.id + '&gameId=' + gameData.id + '&betAmount=' + gameData.bet_amount;
-        global.currentBet = gameData.bet_amount;
-        global.gameValue = gameData.current_value;
+        
+        // Inicializar variables globales de manera robusta
+        global.currentBet = gameData.bet_amount || 0;
+        global.gameValue = gameData.current_value || gameData.bet_amount || 0; // Usar bet_amount como valor inicial si current_value no está definido
+        global.playerType = 'player';
+        
+        console.log('🎯 Global variables initialized:', {
+            currentBet: global.currentBet,
+            gameValue: global.gameValue,
+            playerType: global.playerType
+        });
     }
 
             // Conectar al game server
@@ -701,7 +710,12 @@ function startGameWithBetting(type, playerName, gameData) {
         
         if (bettingClient) {
             bettingClient.showCashOutButton();
-            bettingClient.updateGameValue(gameData.current_value);
+            // Usar bet_amount como valor inicial si current_value no está definido
+            const initialValue = gameData.current_value || gameData.bet_amount || 0;
+            bettingClient.updateGameValue(initialValue);
+            bettingClient.currentValue = initialValue;
+            
+            console.log('💰 BettingClient initialized with value:', initialValue);
         }
     }
 

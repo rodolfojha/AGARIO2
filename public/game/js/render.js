@@ -1,5 +1,38 @@
 // public/game/js/render.js - Renderizado adaptado para apuestas
 
+// === FUNCIONES HELPER ===
+
+// Función helper para obtener valores de apuesta de múltiples fuentes
+const getBettingValues = () => {
+    let currentValue = 0;
+    let currentBet = 0;
+    
+    // Intentar obtener de bettingClient primero
+    if (typeof window !== 'undefined' && window.bettingClient) {
+        currentValue = window.bettingClient.currentValue || 0;
+        if (window.bettingClient.currentGame) {
+            currentBet = window.bettingClient.currentGame.bet_amount || 0;
+        }
+    }
+    
+    // Fallback a variables globales
+    if (currentValue === 0) {
+        currentValue = global.gameValue || 0;
+    }
+    if (currentBet === 0) {
+        currentBet = global.currentBet || 0;
+    }
+    
+    // Si no hay valor inicial, usar la apuesta como valor inicial
+    if (currentValue === 0 && currentBet > 0) {
+        currentValue = currentBet;
+    }
+    
+    return { currentValue, currentBet };
+};
+
+// === FUNCIONES DE RENDERIZADO ===
+
 const FULL_ANGLE = 2 * Math.PI;
 
 const drawRoundObject = (position, radius, graph) => {
@@ -86,14 +119,21 @@ const drawCells = (cells, playerConfig, toggleMassState, borders, graph) => {
         graph.strokeStyle = cell.borderColor;
         
         // NUEVO: Borde especial para jugadores con apuestas altas
-        if (isCurrentPlayer && global.gameValue > global.currentBet * 1.5) {
-            // Borde dorado para jugadores ganando
-            graph.strokeStyle = '#FFD700';
-            graph.lineWidth = 8;
-        } else if (isCurrentPlayer && global.gameValue < global.currentBet * 0.5) {
-            // Borde rojo para jugadores perdiendo
-            graph.strokeStyle = '#FF4444';
-            graph.lineWidth = 8;
+        if (isCurrentPlayer) {
+            const { currentValue, currentBet } = getBettingValues();
+            
+            // Aplicar borde según el rendimiento
+            if (currentValue > currentBet * 1.5) {
+                // Borde dorado para jugadores ganando
+                graph.strokeStyle = '#FFD700';
+                graph.lineWidth = 8;
+            } else if (currentValue < currentBet * 0.5) {
+                // Borde rojo para jugadores perdiendo
+                graph.strokeStyle = '#FF4444';
+                graph.lineWidth = 8;
+            } else {
+                graph.lineWidth = 6;
+            }
         } else {
             graph.lineWidth = 6;
         }
@@ -119,14 +159,16 @@ const drawCells = (cells, playerConfig, toggleMassState, borders, graph) => {
         graph.fillText(cell.name, cell.x, cell.y);
 
         // NUEVO: Dibujar valor de apuesta en el círculo
-        if (isCurrentPlayer && global.currentBet && global.gameValue && cells) {
+        if (isCurrentPlayer && (global.currentBet || global.gameValue || (typeof window !== 'undefined' && window.bettingClient && window.bettingClient.currentValue))) {
             try {
+                const { currentValue } = getBettingValues();
+                
                 // Calcular valor actual del círculo basado en su masa relativa
                 // Filtrar solo las células del jugador actual
                 const playerCells = cells.filter(c => c.id === cell.id);
                 const totalPlayerMass = playerCells.reduce((sum, c) => sum + (c.mass || 0), 0);
                 const cellValueRatio = totalPlayerMass > 0 ? (cell.mass || 0) / totalPlayerMass : 0;
-                const cellValue = (global.gameValue || 0) * cellValueRatio;
+                const cellValue = currentValue * cellValueRatio;
                 
                 // Verificar que cellValue es un número válido
                 if (isFinite(cellValue) && cellValue > 0) {
@@ -156,17 +198,21 @@ const drawCells = (cells, playerConfig, toggleMassState, borders, graph) => {
         }
 
         // NUEVO: Mostrar valor para el jugador actual
-        if (isCurrentPlayer && global.gameValue > 0 && cell.radius > 20) {
-            graph.font = 'bold ' + Math.max(fontSize / 2, 8) + 'px sans-serif';
-            graph.fillStyle = '#FFD700';
-            graph.strokeStyle = '#000000';
-            graph.lineWidth = 2;
+        if (isCurrentPlayer && (global.gameValue > 0 || (typeof window !== 'undefined' && window.bettingClient && window.bettingClient.currentValue > 0)) && cell.radius > 20) {
+            const { currentValue } = getBettingValues();
             
-            const valueText = '$' + (global.gameValue || 0).toFixed(1);
-            const yOffset = cell.name.length > 0 ? fontSize * 1.5 : fontSize;
-            
-            graph.strokeText(valueText, cell.x, cell.y + yOffset);
-            graph.fillText(valueText, cell.x, cell.y + yOffset);
+            if (currentValue > 0) {
+                graph.font = 'bold ' + Math.max(fontSize / 2, 8) + 'px sans-serif';
+                graph.fillStyle = '#FFD700';
+                graph.strokeStyle = '#000000';
+                graph.lineWidth = 2;
+                
+                const valueText = '$' + currentValue.toFixed(1);
+                const yOffset = cell.name.length > 0 ? fontSize * 1.5 : fontSize;
+                
+                graph.strokeText(valueText, cell.x, cell.y + yOffset);
+                graph.fillText(valueText, cell.x, cell.y + yOffset);
+            }
         }
     }
 };
@@ -213,9 +259,10 @@ const drawErrorMessage = (message, graph, screen) => {
     graph.fillText(message, screen.width / 2, screen.height / 2);
     
     // NUEVO: Mostrar información de pérdida/ganancia
-    if (global.currentBet > 0) {
+    const { currentBet } = getBettingValues();
+    if (currentBet > 0) {
         graph.font = 'bold 20px sans-serif';
-        const lossText = 'Apuesta perdida: $' + (global.currentBet || 0).toFixed(2);
+        const lossText = 'Apuesta perdida: $' + currentBet.toFixed(2);
         graph.fillStyle = '#e74c3c';
         graph.fillText(lossText, screen.width / 2, screen.height / 2 + 50);
     }
@@ -223,7 +270,10 @@ const drawErrorMessage = (message, graph, screen) => {
 
 // NUEVO: Función para dibujar HUD de apuestas
 const drawBettingHUD = (graph, screen) => {
-    if (global.playerType !== 'player' || global.gameValue === 0) return;
+    const { currentValue, currentBet } = getBettingValues();
+    
+    // Verificar si debemos mostrar el HUD
+    if (global.playerType !== 'player' || currentValue === 0) return;
     
     // Background del HUD
     graph.fillStyle = 'rgba(0, 0, 0, 0.8)';
@@ -238,11 +288,11 @@ const drawBettingHUD = (graph, screen) => {
     // Valor en grande
     graph.font = 'bold 18px sans-serif';
     graph.fillStyle = '#FFD700';
-    graph.fillText('$' + (global.gameValue || 0).toFixed(2), screen.width - 190, 50);
+    graph.fillText('$' + currentValue.toFixed(2), screen.width - 190, 50);
     
     // ROI
-    if (global.currentBet > 0) {
-        const roi = ((global.gameValue / global.currentBet - 1) * 100);
+    if (currentBet > 0) {
+        const roi = ((currentValue / currentBet - 1) * 100);
         graph.font = 'bold 12px sans-serif';
         graph.fillStyle = roi >= 0 ? '#2ecc71' : '#e74c3c';
         const roiText = 'ROI: ' + (roi >= 0 ? '+' : '') + (roi || 0).toFixed(1) + '%';

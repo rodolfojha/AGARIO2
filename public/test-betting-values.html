@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Betting Values</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test de Variables de Apuesta</h1>
+    
+    <div class="test-section">
+        <h2>Estado Actual</h2>
+        <div id="currentStatus">Cargando...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Simular Inicialización</h2>
+        <button onclick="simulateGameStart()">Simular Inicio de Juego</button>
+        <button onclick="simulateValueUpdate()">Simular Actualización de Valor</button>
+        <button onclick="checkRenderConditions()">Verificar Condiciones de Render</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Logs</h2>
+        <div id="logs" style="background: #f8f9fa; padding: 10px; border-radius: 4px; font-family: monospace; max-height: 300px; overflow-y: auto;"></div>
+    </div>
+
+    <script>
+        // Simular variables globales
+        window.global = {
+            currentBet: 0,
+            gameValue: 0,
+            playerType: ''
+        };
+        
+        // Simular bettingClient
+        window.bettingClient = {
+            currentValue: 0,
+            currentGame: null,
+            updateGameValue: function(value) {
+                this.currentValue = value;
+                log('💰 BettingClient updated with value: ' + value);
+            }
+        };
+        
+        function log(message) {
+            const logsDiv = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            logsDiv.innerHTML += `[${timestamp}] ${message}<br>`;
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function updateStatus() {
+            const statusDiv = document.getElementById('currentStatus');
+            statusDiv.innerHTML = `
+                <p><strong>Global Variables:</strong></p>
+                <ul>
+                    <li>currentBet: <span class="${global.currentBet > 0 ? 'success' : 'error'}">${global.currentBet}</span></li>
+                    <li>gameValue: <span class="${global.gameValue > 0 ? 'success' : 'error'}">${global.gameValue}</span></li>
+                    <li>playerType: <span class="${global.playerType ? 'success' : 'error'}">${global.playerType || 'no definido'}</span></li>
+                </ul>
+                <p><strong>BettingClient:</strong></p>
+                <ul>
+                    <li>currentValue: <span class="${bettingClient.currentValue > 0 ? 'success' : 'error'}">${bettingClient.currentValue}</span></li>
+                    <li>currentGame: <span class="${bettingClient.currentGame ? 'success' : 'error'}">${bettingClient.currentGame ? 'definido' : 'no definido'}</span></li>
+                </ul>
+            `;
+        }
+        
+        function simulateGameStart() {
+            log('🎮 Simulando inicio de juego...');
+            
+            // Simular datos del juego
+            const gameData = {
+                id: 'test-game-123',
+                bet_amount: 5,
+                current_value: 5 // Valor inicial igual a la apuesta
+            };
+            
+            // Inicializar variables globales
+            global.currentBet = gameData.bet_amount || 0;
+            global.gameValue = gameData.current_value || gameData.bet_amount || 0;
+            global.playerType = 'player';
+            
+            // Inicializar bettingClient
+            bettingClient.currentGame = gameData;
+            bettingClient.currentValue = gameData.current_value || gameData.bet_amount || 0;
+            
+            log('✅ Juego simulado iniciado con apuesta de $' + gameData.bet_amount);
+            updateStatus();
+        }
+        
+        function simulateValueUpdate() {
+            log('📈 Simulando actualización de valor...');
+            
+            // Simular que el valor aumenta
+            const newValue = global.gameValue + 2;
+            global.gameValue = newValue;
+            bettingClient.currentValue = newValue;
+            
+            log('✅ Valor actualizado a $' + newValue);
+            updateStatus();
+        }
+        
+        function checkRenderConditions() {
+            log('🔍 Verificando condiciones de render...');
+            
+            // Función helper simulada
+            const getBettingValues = () => {
+                let currentValue = 0;
+                let currentBet = 0;
+                
+                // Intentar obtener de bettingClient primero
+                if (typeof window !== 'undefined' && window.bettingClient) {
+                    currentValue = window.bettingClient.currentValue || 0;
+                    if (window.bettingClient.currentGame) {
+                        currentBet = window.bettingClient.currentGame.bet_amount || 0;
+                    }
+                }
+                
+                // Fallback a variables globales
+                if (currentValue === 0) {
+                    currentValue = global.gameValue || 0;
+                }
+                if (currentBet === 0) {
+                    currentBet = global.currentBet || 0;
+                }
+                
+                // Si no hay valor inicial, usar la apuesta como valor inicial
+                if (currentValue === 0 && currentBet > 0) {
+                    currentValue = currentBet;
+                }
+                
+                return { currentValue, currentBet };
+            };
+            
+            const { currentValue, currentBet } = getBettingValues();
+            
+            log('📊 Valores obtenidos:');
+            log('  - currentValue: $' + currentValue);
+            log('  - currentBet: $' + currentBet);
+            
+            // Verificar condiciones de render
+            const conditions = {
+                hasCurrentBet: currentBet > 0,
+                hasGameValue: currentValue > 0,
+                hasBettingClient: typeof window !== 'undefined' && window.bettingClient,
+                hasCurrentValue: window.bettingClient && window.bettingClient.currentValue > 0
+            };
+            
+            log('🔍 Condiciones de render:');
+            Object.entries(conditions).forEach(([condition, value]) => {
+                log(`  - ${condition}: ${value ? '✅' : '❌'}`);
+            });
+            
+            // Verificar si se mostraría el precio en el círculo
+            const shouldShowPrice = currentValue > 0 && currentBet > 0;
+            log(`💰 ¿Se mostraría el precio en el círculo? ${shouldShowPrice ? '✅ SÍ' : '❌ NO'}`);
+        }
+        
+        // Inicializar
+        log('🚀 Test iniciado');
+        updateStatus();
+    </script>
+</body>
+</html>
