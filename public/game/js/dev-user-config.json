@@ -1,0 +1,18 @@
+{
+  "devUser": {
+    "id": "dev-user-123",
+    "name": "Dev User",
+    "email": "dev@example.com",
+    "balance_available": 450,
+    "balance_locked": 0,
+    "avatar": "https://via.placeholder.com/50/FF6B6B/FFFFFF?text=D",
+    "is_dev": true,
+    "is_admin": true
+  },
+  "lastSync": "2025-08-16T07:22:32.252Z",
+  "instructions": {
+    "login": "Usar el botón \"🛠️ DEV LOGIN\" en el juego",
+    "balance": "El balance se sincroniza automáticamente",
+    "note": "Este archivo se actualiza cada vez que ejecutes sync_dev_balance.js"
+  }
+}

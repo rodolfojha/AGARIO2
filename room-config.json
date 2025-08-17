@@ -1,0 +1,23 @@
+{
+  "currentRoom": "medium",
+  "configs": {
+    "small": {
+      "name": "Sala Pequeña",
+      "width": 1000,
+      "height": 1000,
+      "maxPlayers": 20
+    },
+    "medium": {
+      "name": "Sala Mediana",
+      "width": 2000,
+      "height": 2000,
+      "maxPlayers": 50
+    },
+    "large": {
+      "name": "Sala Grande",
+      "width": 3000,
+      "height": 3000,
+      "maxPlayers": 100
+    }
+  }
+}

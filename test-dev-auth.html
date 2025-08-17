@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test DevAuth</title>
+</head>
+<body>
+    <h1>Test DevAuthManager</h1>
+    <div class="login-buttons">
+        <!-- El botón se creará automáticamente -->
+    </div>
+    
+    <div id="userInfo">
+        <p>Usuario: <span id="userName">Invitado</span></p>
+        <p>Email: <span id="userEmail"></span></p>
+        <p>Balance Disponible: $<span id="availableBalance">0.00</span></p>
+        <p>Balance Bloqueado: $<span id="lockedBalance">0.00</span></p>
+    </div>
+    
+    <script src="game/js/dev-auth.js"></script>
+    
+    <script>
+        // Script de prueba
+        setTimeout(() => {
+            console.log('🧪 Testing DevAuthManager...');
+            console.log('🔍 window.devAuthManager:', window.devAuthManager);
+            console.log('🔍 DevAuthManager class:', typeof DevAuthManager);
+            
+            if (window.devAuthManager) {
+                console.log('✅ DevAuthManager is working!');
+            } else {
+                console.error('❌ DevAuthManager not found');
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
+

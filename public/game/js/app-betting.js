@@ -4,7 +4,7 @@
 function getApiBaseUrl() {
     return window.location.hostname === 'localhost' ? 
         'http://localhost:3000' : 
-        'https://back.pruebatupanel.com';
+        `http://${window.location.hostname}`;
 }
 
 // === INSTANCIAS GLOBALES ===
@@ -245,30 +245,8 @@ document.body.appendChild(refreshBtn);
     }
 
     // === CASH OUT EVENTS ===
-    const confirmCashOut = document.getElementById('confirmCashOut');
-    if (confirmCashOut) {
-        confirmCashOut.onclick = async () => {
-            document.getElementById('cashOutModal').style.display = 'none';
-            console.log('💸 Processing cash out...');
-            
-            const result = await bettingClient.cashOut();
-            if (result) {
-                console.log('✅ Cash out successful:', result);
-                if (socket) {
-                    socket.disconnect();
-                }
-                returnToMenu();
-            }
-        };
-    }
-
-    const cancelCashOut = document.getElementById('cancelCashOut');
-    if (cancelCashOut) {
-        cancelCashOut.onclick = () => {
-            document.getElementById('cashOutModal').style.display = 'none';
-            console.log('❌ Cash out cancelled');
-        };
-    }
+    // Los eventos de cash out ahora se manejan en betting-client.js
+    // para evitar duplicación de modales
 
     // === PLAYER NAME INPUT ===
     const playerNameInput = document.getElementById('playerNameInput');
@@ -627,7 +605,7 @@ async function startGameWithBetting(type, playerName, gameData) {
     // OBTENER CONFIGURACIÓN DEL SERVIDOR
     try {
         console.log('🔧 Obteniendo configuración de sala del servidor...');
-        const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : `https://${window.location.hostname}`;
+        const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : `http://${window.location.hostname}`;
         
         // Intentar obtener configuración con autenticación si está disponible
         let headers = {
@@ -769,10 +747,10 @@ async function startGameWithBetting(type, playerName, gameData) {
         });
     }
 
-            // Conectar al game server
+            // Conectar al game server directamente
         const gameServerUrl = window.location.hostname === 'localhost' ? 
             'http://localhost:3001' : 
-            'https://back.pruebatupanel.com';
+            `http://${window.location.hostname}:3001`;
     
     socket = io(gameServerUrl, { query: query });
     global.socket = socket;

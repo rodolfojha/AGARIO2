@@ -7,25 +7,38 @@ const getBettingValues = () => {
     let currentValue = 0;
     let currentBet = 0;
     
-    // Intentar obtener de bettingClient primero
-    if (typeof window !== 'undefined' && window.bettingClient) {
-        currentValue = window.bettingClient.currentValue || 0;
-        if (window.bettingClient.currentGame) {
-            currentBet = window.bettingClient.currentGame.bet_amount || 0;
+    try {
+        // Intentar obtener de bettingClient primero (más confiable)
+        if (typeof window !== 'undefined' && window.bettingClient) {
+            currentValue = window.bettingClient.currentValue || 0;
+            if (window.bettingClient.currentGame) {
+                currentBet = window.bettingClient.currentGame.bet_amount || 0;
+            }
         }
-    }
-    
-    // Fallback a variables globales
-    if (currentValue === 0) {
+        
+        // Fallback a variables globales
+        if (currentValue === 0) {
+            currentValue = global.gameValue || 0;
+        }
+        if (currentBet === 0) {
+            currentBet = global.currentBet || 0;
+        }
+        
+        // Si no hay valor inicial, usar la apuesta como valor inicial
+        if (currentValue === 0 && currentBet > 0) {
+            currentValue = currentBet;
+        }
+        
+        // Log para debug
+        if (currentValue > 0 || currentBet > 0) {
+            console.log('💰 getBettingValues:', { currentValue, currentBet, source: 'render.js' });
+        }
+        
+    } catch (error) {
+        console.error('❌ Error en getBettingValues:', error);
+        // Valores por defecto en caso de error
         currentValue = global.gameValue || 0;
-    }
-    if (currentBet === 0) {
         currentBet = global.currentBet || 0;
-    }
-    
-    // Si no hay valor inicial, usar la apuesta como valor inicial
-    if (currentValue === 0 && currentBet > 0) {
-        currentValue = currentBet;
     }
     
     return { currentValue, currentBet };
@@ -158,31 +171,47 @@ const drawCells = (cells, playerConfig, toggleMassState, borders, graph) => {
         graph.strokeText(cell.name, cell.x, cell.y);
         graph.fillText(cell.name, cell.x, cell.y);
 
-        // NUEVO: Dibujar valor de apuesta en el círculo
-        if (isCurrentPlayer && (global.currentBet || global.gameValue || (typeof window !== 'undefined' && window.bettingClient && window.bettingClient.currentValue))) {
+        // NUEVO: Dibujar valor de apuesta en el círculo del jugador actual
+        if (isCurrentPlayer && cell.radius > 15) {
             try {
-                const { currentValue } = getBettingValues();
+                const { currentValue, currentBet } = getBettingValues();
                 
-                // Calcular valor actual del círculo basado en su masa relativa
-                // Filtrar solo las células del jugador actual
-                const playerCells = cells.filter(c => c.id === cell.id);
-                const totalPlayerMass = playerCells.reduce((sum, c) => sum + (c.mass || 0), 0);
-                const cellValueRatio = totalPlayerMass > 0 ? (cell.mass || 0) / totalPlayerMass : 0;
-                const cellValue = currentValue * cellValueRatio;
-                
-                // Verificar que cellValue es un número válido
-                if (isFinite(cellValue) && cellValue > 0) {
-                    // Mostrar valor debajo del nombre
-                    const valueText = `$${cellValue.toFixed(2)}`;
-                    const valueFontSize = Math.max(fontSize * 0.7, 10);
-                    graph.font = 'bold ' + valueFontSize + 'px sans-serif';
-                    graph.fillStyle = '#FFD700'; // Color dorado para el valor
-                    graph.strokeStyle = '#000000';
-                    graph.lineWidth = 2;
+                // Mostrar valor actual del círculo
+                if (currentValue > 0) {
+                    // Calcular valor del círculo basado en su masa relativa
+                    const playerCells = cells.filter(c => c.id === cell.id);
+                    const totalPlayerMass = playerCells.reduce((sum, c) => sum + (c.mass || 0), 0);
+                    const cellValueRatio = totalPlayerMass > 0 ? (cell.mass || 0) / totalPlayerMass : 0;
+                    const cellValue = currentValue * cellValueRatio;
                     
-                    const valueY = cell.y + fontSize * 0.6;
-                    graph.strokeText(valueText, cell.x, valueY);
-                    graph.fillText(valueText, cell.x, valueY);
+                    if (isFinite(cellValue) && cellValue > 0) {
+                        // Valor actual del círculo (debajo del nombre)
+                        const valueText = `$${cellValue.toFixed(2)}`;
+                        const valueFontSize = Math.max(fontSize * 0.6, 8);
+                        graph.font = 'bold ' + valueFontSize + 'px sans-serif';
+                        graph.fillStyle = '#FFD700'; // Dorado
+                        graph.strokeStyle = '#000000';
+                        graph.lineWidth = 2;
+                        
+                        const valueY = cell.y + fontSize * 0.8;
+                        graph.strokeText(valueText, cell.x, valueY);
+                        graph.fillText(valueText, cell.x, valueY);
+                        
+                        // Mostrar ROI si hay apuesta inicial
+                        if (currentBet > 0 && currentValue !== currentBet) {
+                            const roi = ((currentValue / currentBet - 1) * 100);
+                            const roiText = (roi >= 0 ? '+' : '') + roi.toFixed(1) + '%';
+                            const roiFontSize = Math.max(fontSize * 0.5, 6);
+                            graph.font = 'bold ' + roiFontSize + 'px sans-serif';
+                            graph.fillStyle = roi >= 0 ? '#2ecc71' : '#e74c3c'; // Verde si gana, rojo si pierde
+                            graph.strokeStyle = '#000000';
+                            graph.lineWidth = 1;
+                            
+                            const roiY = valueY + valueFontSize * 0.8;
+                            graph.strokeText(roiText, cell.x, roiY);
+                            graph.fillText(roiText, cell.x, roiY);
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('Error drawing cell value:', error);
@@ -195,24 +224,6 @@ const drawCells = (cells, playerConfig, toggleMassState, borders, graph) => {
             if (cell.name.length === 0) fontSize = 0;
             graph.strokeText(Math.round(cell.mass), cell.x, cell.y + fontSize);
             graph.fillText(Math.round(cell.mass), cell.x, cell.y + fontSize);
-        }
-
-        // NUEVO: Mostrar valor para el jugador actual
-        if (isCurrentPlayer && (global.gameValue > 0 || (typeof window !== 'undefined' && window.bettingClient && window.bettingClient.currentValue > 0)) && cell.radius > 20) {
-            const { currentValue } = getBettingValues();
-            
-            if (currentValue > 0) {
-                graph.font = 'bold ' + Math.max(fontSize / 2, 8) + 'px sans-serif';
-                graph.fillStyle = '#FFD700';
-                graph.strokeStyle = '#000000';
-                graph.lineWidth = 2;
-                
-                const valueText = '$' + currentValue.toFixed(1);
-                const yOffset = cell.name.length > 0 ? fontSize * 1.5 : fontSize;
-                
-                graph.strokeText(valueText, cell.x, cell.y + yOffset);
-                graph.fillText(valueText, cell.x, cell.y + yOffset);
-            }
         }
     }
 };

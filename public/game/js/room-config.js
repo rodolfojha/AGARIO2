@@ -53,7 +53,7 @@ async function setRoomConfig(configKey) {
     }
     
     try {
-        const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://back.pruebatupanel.com';
+        const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : `http://${window.location.hostname}`;
         const response = await fetch(apiBase + '/api/admin/room-config', {
             method: 'POST',
             headers: {
@@ -86,7 +86,7 @@ async function setRoomConfig(configKey) {
 // Función para cargar la configuración actual desde el servidor
 async function loadRoomConfig() {
     try {
-        const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://back.pruebatupanel.com';
+        const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : `http://${window.location.hostname}`;
         const response = await fetch(apiBase + '/api/admin/room-config', {
             headers: {
                 'Authorization': 'Bearer ' + (window.authManager ? window.authManager.token : '')
@@ -152,7 +152,7 @@ function getRoomInfo() {
 // Función para verificar si el usuario es administrador
 async function checkAdminStatus() {
     try {
-        const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://back.pruebatupanel.com';
+        const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : `http://${window.location.hostname}`;
         const response = await fetch(apiBase + '/api/admin/check-status', {
             headers: {
                 'Authorization': 'Bearer ' + (window.authManager ? window.authManager.token : '')

@@ -1,15 +1,24 @@
 module.exports = {
     host: "0.0.0.0",
-    port: 3000,
+    port: process.env.GAME_PORT || 3001,
     // Configuración del dominio
     domain: process.env.DOMAIN || "tu-dominio.com", // Reemplaza con tu dominio
     cors: {
         origin: [
             "https://tu-dominio.com", // Tu dominio principal
             "https://www.tu-dominio.com", // Con www
-            "https://tu-proyecto.vercel.app", // Tu dominio de Vercel
             "http://localhost:3000", // Para desarrollo local
-            "http://localhost:5000" // Para desarrollo local
+            "http://localhost:5000", // Para desarrollo local
+            function(origin, callback) {
+                // Permitir cualquier origen del mismo hostname en producción
+                if (!origin) return callback(null, true);
+                const hostname = new URL(origin).hostname;
+                if (hostname === process.env.DOMAIN || hostname.includes('localhost')) {
+                    callback(null, true);
+                } else {
+                    callback(null, true); // Por ahora permitimos todo para VPS
+                }
+            }
         ],
         credentials: true
     },

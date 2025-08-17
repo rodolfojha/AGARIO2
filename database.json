@@ -1,0 +1,58 @@
+{
+  "users": {
+    "dev-user-123": {
+      "id": "dev-user-123",
+      "name": "Dev User",
+      "email": "dev@example.com",
+      "balance_available": 450,
+      "balance_locked": 0,
+      "created_at": "2025-08-16T07:10:46.999Z",
+      "last_login": "2025-08-16T07:14:08.961Z",
+      "is_admin": true,
+      "is_dev": true
+    }
+  },
+  "transactions": {
+    "tx_1755328247003_vdk5d9k5i": {
+      "id": "tx_1755328247003_vdk5d9k5i",
+      "userId": "dev-user-123",
+      "type": "deposit",
+      "amount": 250,
+      "description": "Balance agregado manualmente - Script de recarga DEV",
+      "timestamp": "2025-08-16T07:10:47.003Z",
+      "metadata": {
+        "method": "manual_script",
+        "admin_action": true,
+        "script": "add_balance_dev.js"
+      }
+    },
+    "tx_1755328265156_crcnzki4u": {
+      "id": "tx_1755328265156_crcnzki4u",
+      "userId": "dev-user-123",
+      "type": "deposit",
+      "amount": 100,
+      "description": "Balance agregado manualmente - Script de recarga DEV",
+      "timestamp": "2025-08-16T07:11:05.156Z",
+      "metadata": {
+        "method": "manual_script",
+        "admin_action": true,
+        "script": "add_balance_dev.js"
+      }
+    },
+    "tx_1755328448961_djh1qda0x": {
+      "id": "tx_1755328448961_djh1qda0x",
+      "userId": "dev-user-123",
+      "type": "deposit",
+      "amount": 100,
+      "description": "Balance agregado manualmente - Script de recarga DEV",
+      "timestamp": "2025-08-16T07:14:08.961Z",
+      "metadata": {
+        "method": "manual_script",
+        "admin_action": true,
+        "script": "add_balance_dev.js"
+      }
+    }
+  },
+  "games": {},
+  "payments": {}
+}

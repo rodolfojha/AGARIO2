@@ -269,7 +269,7 @@
     <script>
         // Variables globales
         let authManager = null;
-        const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : `https://${window.location.hostname}`;
+        const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : `http://${window.location.hostname}`;
 
         // Inicialización
         document.addEventListener('DOMContentLoaded', function() {
@@ -377,7 +377,17 @@
                 
                 if (response.ok) {
                     const data = await response.json();
-                    updateStatsDisplay(data.stats);
+                    console.log('📊 Stats response:', data); // Debug log
+                    
+                    // Manejar diferentes estructuras de respuesta
+                    let stats = data;
+                    if (data.stats) {
+                        stats = data.stats;
+                    } else if (data.data) {
+                        stats = data.data;
+                    }
+                    
+                    updateStatsDisplay(stats);
                 } else {
                     console.log('Error loading stats:', response.status);
                     // Si hay error de autenticación, mostrar login
@@ -385,6 +395,7 @@
                         showToast('Sesión expirada. Por favor inicia sesión nuevamente.', 'error');
                         localStorage.removeItem('authToken');
                         localStorage.removeItem('userData');
+                        document.getElementById('adminName').textContent = 'Cargando...';
                         document.getElementById('loginModal').style.display = 'flex';
                     } else {
                         showToast('Error al cargar estadísticas', 'error');
@@ -398,17 +409,46 @@
 
         // Actualizar display de estadísticas
         function updateStatsDisplay(stats) {
-            document.getElementById('totalUsers').textContent = stats.users.total;
-            document.getElementById('activeGames').textContent = stats.games.active;
-            document.getElementById('totalBalance').textContent = '$' + stats.balance.total;
-            document.getElementById('uptime').textContent = stats.system.uptime;
-            
-            document.getElementById('activeUsers').textContent = stats.users.active;
-            document.getElementById('totalWagered').textContent = '$' + stats.balance.totalWagered;
-            document.getElementById('totalWon').textContent = '$' + stats.balance.totalWon;
-            document.getElementById('profit').textContent = '$' + stats.balance.profit;
-            document.getElementById('memoryUsed').textContent = stats.system.memory.used;
-            document.getElementById('dbSize').textContent = stats.system.dbFileSize;
+            try {
+                // Verificar que stats existe y tiene la estructura esperada
+                if (!stats) {
+                    console.warn('⚠️ Stats es undefined o null');
+                    return;
+                }
+                
+                console.log('🔍 Actualizando stats con:', stats); // Debug log
+                
+                // Usar valores por defecto si las propiedades no existen
+                const safeGet = (obj, path, defaultValue = '-') => {
+                    try {
+                        return path.split('.').reduce((o, i) => o[i], obj) ?? defaultValue;
+                    } catch (e) {
+                        return defaultValue;
+                    }
+                };
+                
+                // Actualizar elementos con valores seguros
+                document.getElementById('totalUsers').textContent = safeGet(stats, 'users.total', '0');
+                document.getElementById('activeGames').textContent = safeGet(stats, 'games.active', '0');
+                document.getElementById('totalBalance').textContent = '$' + safeGet(stats, 'balance.total', '0');
+                document.getElementById('uptime').textContent = safeGet(stats, 'system.uptime', '0');
+                
+                document.getElementById('activeUsers').textContent = safeGet(stats, 'users.active', '0');
+                document.getElementById('totalWagered').textContent = '$' + safeGet(stats, 'balance.totalWagered', '0');
+                document.getElementById('totalWon').textContent = '$' + safeGet(stats, 'balance.totalWon', '0');
+                document.getElementById('profit').textContent = '$' + safeGet(stats, 'balance.profit', '0');
+                document.getElementById('memoryUsed').textContent = safeGet(stats, 'system.memory.used', '0');
+                document.getElementById('dbSize').textContent = safeGet(stats, 'system.dbFileSize', '0');
+                
+            } catch (error) {
+                console.error('❌ Error en updateStatsDisplay:', error);
+                // Mostrar valores por defecto en caso de error
+                const elements = ['totalUsers', 'activeGames', 'totalBalance', 'uptime', 'activeUsers', 'totalWagered', 'totalWon', 'profit', 'memoryUsed', 'dbSize'];
+                elements.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) element.textContent = '-';
+                });
+            }
         }
 
         // Cargar configuración de salas
