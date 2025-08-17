@@ -556,6 +556,7 @@
     <script src="game/js/canvas.js"></script>
     <script src="game/js/chat-client.js"></script>
     <script src="game/js/app-betting.js"></script>
+    <script src="game/js/dev-auth.js"></script>
     <script>
           // Script principal simplificado y corregido
           
@@ -572,12 +573,25 @@
               const userName = document.getElementById('userName');
               const adminPanelBtn = document.getElementById('adminPanelBtn');
               
-              if (authManager && authManager.isAuthenticated) {
+              // Verificar tanto authManager como devAuthManager
+              const isAuthenticated = (authManager && authManager.isAuthenticated) || 
+                                    (window.devAuthManager && window.devAuthManager.isAuthenticated);
+              
+              if (isAuthenticated) {
                   if (devLoginBtn) devLoginBtn.style.display = 'none';
                   if (googleLoginBtn) googleLoginBtn.style.display = 'none';
                   if (logoutBtn) logoutBtn.style.display = 'block';
-                  if (userName && authManager.user) {
-                      userName.textContent = authManager.user.name || authManager.user.email || 'Usuario';
+                  
+                  // Usar el usuario del sistema que esté autenticado
+                  let currentUser = null;
+                  if (authManager && authManager.isAuthenticated) {
+                      currentUser = authManager.user;
+                  } else if (window.devAuthManager && window.devAuthManager.isAuthenticated) {
+                      currentUser = window.devAuthManager.user;
+                  }
+                  
+                  if (userName && currentUser) {
+                      userName.textContent = currentUser.name || currentUser.email || 'Usuario';
                   }
                   
                   // Verificar si el usuario es administrador
@@ -598,13 +612,25 @@
           
           // Función para verificar si el usuario es administrador
           async function checkAdminStatus() {
-              if (!authManager || !authManager.isAuthenticated) return;
+              // Verificar tanto authManager como devAuthManager
+              let isAuthenticated = false;
+              let token = null;
+              
+              if (authManager && authManager.isAuthenticated) {
+                  isAuthenticated = true;
+                  token = authManager.token;
+              } else if (window.devAuthManager && window.devAuthManager.isAuthenticated) {
+                  isAuthenticated = true;
+                  token = window.devAuthManager.token;
+              }
+              
+              if (!isAuthenticated) return;
               
               try {
-                  const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : `https://${window.location.hostname}`;
+                  const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : `http://${window.location.hostname}`;
                   const response = await fetch(apiBase + '/api/admin/check-status', {
                       headers: {
-                          'Authorization': 'Bearer ' + authManager.token
+                          'Authorization': 'Bearer ' + token
                       }
                   });
                   
@@ -795,7 +821,22 @@
                   startButton.addEventListener('click', async function() {
                       console.log('🎮 JOIN GAME button clicked');
                       
-                      if (!authManager || !authManager.isAuthenticated) {
+                      // Verificar tanto authManager como devAuthManager
+                      let isAuthenticated = false;
+                      let currentUser = null;
+                      let currentToken = null;
+                      
+                      if (authManager && authManager.isAuthenticated) {
+                          isAuthenticated = true;
+                          currentUser = authManager.user;
+                          currentToken = authManager.token;
+                      } else if (window.devAuthManager && window.devAuthManager.isAuthenticated) {
+                          isAuthenticated = true;
+                          currentUser = window.devAuthManager.user;
+                          currentToken = window.devAuthManager.token;
+                      }
+                      
+                      if (!isAuthenticated) {
                           alert('⚠️ Por favor inicia sesión primero');
                           return;
                       }
@@ -820,25 +861,25 @@
                           if (typeof window.bettingClient !== 'undefined' && window.bettingClient.startGame) {
                               const gameData = await window.bettingClient.startGame(currentBetAmount);
                               if (gameData) {
-                                  const gameUrl = `/game.html?gameData=${encodeURIComponent(JSON.stringify(gameData))}&playerName=${encodeURIComponent(playerName)}&betAmount=${encodeURIComponent(currentBetAmount)}&userId=${encodeURIComponent(authManager.user.id)}`;
+                                  const gameUrl = `/game.html?gameData=${encodeURIComponent(JSON.stringify(gameData))}&playerName=${encodeURIComponent(playerName)}&betAmount=${encodeURIComponent(currentBetAmount)}&userId=${encodeURIComponent(currentUser.id)}`;
                                   window.location.href = gameUrl;
                               } else {
                                   throw new Error('No se pudo iniciar el juego');
                               }
                           } else {
-                              const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : `https://${window.location.hostname}`;
+                              const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : `http://${window.location.hostname}`;
                               const response = await fetch(apiBase + '/api/game/start', {
                                   method: 'POST',
                                   headers: {
                                       'Content-Type': 'application/json',
-                                      'Authorization': 'Bearer ' + authManager.token
+                                      'Authorization': 'Bearer ' + currentToken
                                   },
                                   body: JSON.stringify({ betAmount: currentBetAmount })
                               });
                               
                               if (response.ok) {
                                   const gameData = await response.json();
-                                  const gameUrl = `/game.html?gameData=${encodeURIComponent(JSON.stringify(gameData))}&playerName=${encodeURIComponent(playerName)}&betAmount=${encodeURIComponent(currentBetAmount)}&userId=${encodeURIComponent(authManager.user.id)}`;
+                                  const gameUrl = `/game.html?gameData=${encodeURIComponent(JSON.stringify(gameData))}&playerName=${encodeURIComponent(playerName)}&betAmount=${encodeURIComponent(currentBetAmount)}&userId=${encodeURIComponent(currentUser.id)}`;
                                   window.location.href = gameUrl;
                               } else {
                                   const error = await response.json();
@@ -917,8 +958,9 @@
               if (devLoginBtn) {
                   devLoginBtn.addEventListener('click', async () => {
                       console.log('🛠️ Dev login clicked');
-                      if (authManager) {
-                          const success = await authManager.devLogin();
+                      // Usar nuestro sistema dev en lugar del authManager original
+                      if (window.devAuthManager) {
+                          const success = await window.devAuthManager.devLogin();
                           if (success) {
                               console.log('✅ Dev login successful');
                               updateLoginButtons();
@@ -926,7 +968,7 @@
                               console.error('❌ Dev login failed');
                           }
                       } else {
-                          console.error('❌ AuthManager not loaded');
+                          console.error('❌ DevAuthManager not loaded');
                       }
                   });
               }

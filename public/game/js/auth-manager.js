@@ -3,8 +3,8 @@
 // Helper function para obtener la URL base de la API
 function getApiBaseUrl() {
     return window.location.hostname === 'localhost' ? 
-        'http://localhost:3000' : 
-        'https://back.pruebatupanel.com';
+        'http://localhost:3000' :
+        `http://${window.location.hostname}`;
 }
 
 class AuthManager {
@@ -178,21 +178,34 @@ class AuthManager {
     }
 
     updateBalanceDisplay() {
-        if (this.user) {
+        if (this.user && this.user.balance_available !== undefined && this.user.balance_locked !== undefined) {
             const availableBalance = document.getElementById('availableBalance');
             const lockedBalance = document.getElementById('lockedBalance');
             
             if (availableBalance) {
-                availableBalance.textContent = this.user.balance_available.toFixed(2);
+                availableBalance.textContent = (this.user.balance_available || 0).toFixed(2);
             }
             if (lockedBalance) {
-                lockedBalance.textContent = this.user.balance_locked.toFixed(2);
+                lockedBalance.textContent = (this.user.balance_locked || 0).toFixed(2);
             }
             
             console.log('💰 Balance updated:', {
-                available: this.user.balance_available,
-                locked: this.user.balance_locked
+                available: this.user.balance_available || 0,
+                locked: this.user.balance_locked || 0
             });
+        } else {
+            // Si no hay usuario o balance, mostrar 0
+            const availableBalance = document.getElementById('availableBalance');
+            const lockedBalance = document.getElementById('lockedBalance');
+            
+            if (availableBalance) {
+                availableBalance.textContent = '0.00';
+            }
+            if (lockedBalance) {
+                lockedBalance.textContent = '0.00';
+            }
+            
+            console.log('💰 Balance reset to 0 (no user or balance data)');
         }
     }
 

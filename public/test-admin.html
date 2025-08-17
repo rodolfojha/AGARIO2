@@ -99,7 +99,7 @@
     </div>
 
     <script>
-        const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://back.pruebatupanel.com';
+        const apiBase = window.location.hostname === 'localhost' ? 'http://localhost:3000' : `http://${window.location.hostname}`;
         let currentToken = null;
 
         // Test APIs

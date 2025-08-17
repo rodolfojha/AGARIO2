@@ -617,8 +617,8 @@
                     console.log('🎯 Starting game with direct connection...');
                     // Conectar directamente al servidor del juego
                     const socketUrl = window.location.hostname === 'localhost'
-                        ? 'http://localhost:3000'
-                        : 'https://back.pruebatupanel.com';
+                        ? 'http://localhost:3001'
+                        : `http://${window.location.hostname}:3001`;
                     
                     const socket = io(socketUrl, {
                         query: {
